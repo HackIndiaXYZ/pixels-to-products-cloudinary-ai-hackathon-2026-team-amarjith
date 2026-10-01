@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blood Network - Find a verified nearby blood donor</title>
+<style>
+:root{--red:#b3001b;--bg:#fff7f7;--ink:#222}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--red);color:#fff;padding:16px}header h1{margin:0;font-size:22px}header p{margin:4px 0 0;font-size:14px;opacity:.9}
+nav{display:flex;position:sticky;top:0;background:#fff;box-shadow:0 1px 4px #0003;z-index:5}
+nav button{flex:1;padding:12px 4px;border:0;background:none;font-size:14px;border-bottom:3px solid transparent}
+nav button.on{color:var(--red);border-color:var(--red);font-weight:600}
+main{padding:14px;max-width:720px;margin:auto}section{display:none}section.on{display:block}
+label{display:block;margin:10px 0 3px;font-size:13px;font-weight:600}
+input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:16px}
+.btn{margin-top:14px;width:100%;padding:13px;border:0;border-radius:10px;background:var(--red);color:#fff;font-size:16px;font-weight:600}
+.btn.sm{width:auto;padding:6px 10px;font-size:12px;margin:2px}.btn.g{background:#2e7d32}
+.card{background:#fff;border-radius:12px;padding:12px;margin:12px 0;box-shadow:0 1px 4px #0002}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;background:#eee;margin-right:4px}
+.pill.red{background:var(--red);color:#fff}.pill.ok{background:#c8e6c9}
+.steps{display:flex;gap:2px;margin:8px 0}.steps i{flex:1;height:6px;border-radius:3px;background:#ddd}.steps i.d{background:#2e7d32}
+img.cardimg{width:100%;border-radius:8px}.note{font-size:12px;color:#666}.err{color:#b00020;font-size:14px}
+</style></head><body>
+<header><h1>🩸 Blood Network</h1><p>Need blood? Find a verified nearby donor - fast.</p></header>
+<nav id="nav"><button data-t="req" class="on">🚨 Need blood</button><button data-t="don">➕ Donate</button><button data-t="list">📊 Requests</button><button data-t="inbox">🔔 Donor alerts</button></nav>
+<main>
+<section id="req" class="on"><div class="card">
+<label>Patient name</label><input id="r-patient" placeholder="e.g. Rahul">
+<div class="row"><div><label>Blood group needed</label><select id="r-group"></select></div><div><label>Units</label><input id="r-units" type="number" min="1" value="1"></div></div>
+<div class="row"><div><label>Area (Hyderabad)</label><select id="r-area"></select></div><div><label>Urgency</label><select id="r-urg"><option value="critical">Critical (now)</option><option value="urgent" selected>Urgent (today)</option><option value="normal">Normal</option></select></div></div>
+<label>Contact number</label><input id="r-phone" inputmode="numeric" maxlength="10" placeholder="10 digit mobile">
+<label>Hospital / blood bank (optional)</label><input id="r-hosp" placeholder="Where donation will happen">
+<label>Medical report / doctor's slip photo (optional, stored on Cloudinary)</label><input id="r-file" type="file" accept="image/*">
+<button class="btn" id="r-go">Send emergency SOS</button><p class="err" id="r-err"></p>
+<p class="note">Donation always happens at an authorized, licensed blood-collection facility. Blood Network only connects people faster - no blood is exchanged privately.</p></div>
+<div id="r-out"></div></section>
+<section id="don"><div class="card">
+<label>Name</label><input id="d-name"><label>Mobile</label><input id="d-phone" inputmode="numeric" maxlength="10">
+<div class="row"><div><label>Blood group</label><select id="d-group"></select></div><div><label>Area</label><select id="d-area"></select></div></div>
+<label>Last donation date (leave empty if never)</label><input id="d-last" type="date">
+<label>Government ID photo for verification (Cloudinary, faces blurred in public view)</label><input id="d-file" type="file" accept="image/*">
+<button class="btn g" id="d-go">Register as donor</button><p class="err" id="d-err"></p><div id="d-out"></div></div>
+<h3>Registered donors</h3><div id="d-list"></div></section>
+<section id="list"><div id="l-out"></div></section>
+<section id="inbox"><div class="card"><label>Pick a donor to see their alerts</label><select id="i-donor"></select></div><div id="i-out"></div></section>
+</main>
+<script src="app.js"></script></body></html>
