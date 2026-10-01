@@ -35,6 +35,7 @@ function requestCardUrl(r) {
   const layers = [
     'w_900,h_520,c_fill,e_colorize:85,co_rgb:8b0000,q_auto,f_auto',
     `l_text:Arial_90_bold:${esc(r.bloodGroup)},co_white,g_west,x_60,y_-60`,
+    `l_text:Arial_36_bold:${esc((r.component || 'Whole blood').toUpperCase())},co_white,g_west,x_300,y_-60`,
     `l_text:Arial_44_bold:BLOOD%20NEEDED%20-%20${esc(r.urgency.toUpperCase())},co_white,g_north_west,x_60,y_40`,
     `l_text:Arial_34:${esc(r.units + ' units | ' + r.area)},co_white,g_west,x_60,y_60`,
     `l_text:Arial_28:${esc('Patient: ' + r.patient + ' | ' + (r.hospital || 'Authorized blood bank'))},co_white,g_south_west,x_60,y_90`,

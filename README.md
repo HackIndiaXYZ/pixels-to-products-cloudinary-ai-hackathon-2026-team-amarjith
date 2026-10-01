@@ -18,6 +18,13 @@ Blood Network is a public-first, real-time emergency blood matching platform. It
 4. Live status: Searching, Donor Found, Contacted, Donation Coordinated, Completed.
 5. The donation itself always happens at an authorized, licensed blood-collection facility. No blood is exchanged privately. Hospitals and blood banks are verified secondary users.
 
+### Safety and trust features
+- **Escalation engine:** if no donor accepts within 10 minutes (set `ESCALATION_MS` to change), the search radius doubles, more donors are alerted and nearby blood banks are notified. Timeline shown on the request. The "Simulate 10 min" button triggers it instantly for demos.
+- **Donation cooldown:** whole blood 90 days, plasma 28 days, platelets 14 days. Donors in cooldown are never matched; donating via the app starts the cooldown.
+- **Contact masking:** nobody's phone number is shown or sent to the browser. Requester and donor talk through a platform relay chat after the donor accepts.
+- **Fraud checks:** duplicate requests (same patient, group, area, number within 6 hours), 3+ requests from one number, and any mention of money or payment are held for review with no alerts sent. Messages that mention money get a warning. Two user reports ("asked me for money / fake") flag a request or donor and remove them from matching.
+- **Platelets and plasma:** requests can ask for whole blood, platelets or plasma. Plasma uses reverse ABO compatibility (AB donors are universal), each type has its own cooldown.
+
 The goal is to cut the time and friction of finding a compatible donor. It does not try to bypass hospitals.
 
 ## How we use Cloudinary
@@ -42,7 +49,7 @@ npm start        # http://localhost:3000  (works on a phone on the same Wi-Fi)
 ```
 
 ## How to test
-Unit tests (compatibility rules, 90-day donor eligibility, ranking and radius, Cloudinary URL building):
+Unit tests (compatibility, plasma rules, per-type cooldown, ranking and radius, escalation timing, fraud flags, Cloudinary URL building):
 ```bash
 npm test
 ```
@@ -50,8 +57,12 @@ Manual demo (2 minutes):
 1. Open the app, tab **Need blood**: patient "Rahul", B+, 2 units, Gachibowli, Critical, any 10-digit number, then **Send emergency SOS**.
 2. See the Cloudinary-generated emergency card, ranked matched donors, and "donors alerted".
 3. Tab **Donor alerts**: pick an alerted donor (for example Lakshmi) to see the notification.
+3b. Tick **Platelets** or **Plasma** in the Need dropdown to see different matching. Press **Simulate 10 min with no reply** on a request to see the radius widen and blood banks get alerted. Submit the same request twice to see the duplicate flag.
 4. Tab **Donate**: register a donor with an ID photo, which gets a verified badge (face blurred in the public view).
 5. Tab **Requests**: move the request through Contacted, Donation Coordinated and Completed.
+
+## Deploy
+A `Dockerfile` and `render.yaml` are included. Create a Render (or Railway/Fly) web service from this repo and set the three `CLOUDINARY_*` variables. Data is kept in a local `data.json` (demo storage; use a database for production).
 
 ## Project layout
 - `server.js` - HTTP API and static server (no framework)
