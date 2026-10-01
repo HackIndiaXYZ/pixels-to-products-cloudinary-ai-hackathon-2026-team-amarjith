@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Blood Network — Hyderabad</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#b3001b; --red-dark:#7a0012; --red-soft:#fff5f6; --red-border:#f3d4d8;
+  }
+  *{-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#fff;color:#16181d;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.font-display{font-family:'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.01em;}
+  .text-red{color:var(--red);} .bg-red{background:var(--red);} .bg-red-soft{background:var(--red-soft);}
+  .border-red{border-color:var(--red)!important;} .ring-red{--tw-ring-color:var(--red);}
+  .btn-red{background:var(--red);color:#fff;transition:all .2s;}
+  .btn-red:hover{background:var(--red-dark);} .btn-red:active{transform:scale(.98);}
+  .btn-ghost{background:#fff;color:var(--red);border:1px solid var(--red-border);transition:all .2s;}
+  .btn-ghost:hover{background:var(--red-soft);}
+  .card{background:#fff;border:1px solid #eef0f3;border-radius:20px;box-shadow:0 4px 22px -10px rgba(20,20,30,.08);}
+  .pulse-ring{position:relative;}
+  .pulse-ring::before{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 0 0 rgba(179,0,27,.5);animation:pulse 2s infinite;z-index:-1;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(179,0,27,.5);}70%{box-shadow:0 0 0 26px rgba(179,0,27,0);}100%{box-shadow:0 0 0 0 rgba(179,0,27,0);}}
+  .tab-active{color:var(--red)!important;}
+  .tab-active .tab-bar{background:var(--red);}
+  .tab-bar{position:absolute;bottom:-1px;left:50%;width:24px;height:3px;background:transparent;border-radius:3px;transform:translateX(-50%);transition:all .25s;}
+  .nav-pill{transition:all .2s;}
+  .step-num{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;background:var(--red-soft);color:var(--red);border:1px solid var(--red-border);flex-shrink:0;}
+  .status-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+  .timeline-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
+  .timeline-line{position:absolute;left:18px;top:38px;width:2px;background:#eef0f3;height:calc(100% - 12px);}
+  .badge-verified{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:10px;padding:2px 7px;border-radius:999px;font-weight:600;display:inline-flex;align-items:center;gap:3px;}
+  .badge-mask{background:#f3f4f6;color:#4b5563;font-size:10px;padding:2px 7px;border-radius:999px;font-weight:600;display:inline-flex;align-items:center;gap:3px;}
+  .fade-in{animation:fadeIn .4s ease both;} @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .scale-pop{animation:scalePop .35s cubic-bezier(.2,1.3,.5,1) both;} @keyframes scalePop{from{transform:scale(.94);opacity:0;}to{transform:scale(1);opacity:1;}}
+  input,select,textarea{font-size:16px;}
+  .urgent-glow{box-shadow:0 0 0 4px rgba(179,0,27,.15),0 10px 32px -8px rgba(179,0,27,.45);}
+  .chip{padding:5px 11px;border-radius:999px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;}
+  .chip-red{background:var(--red-soft);color:var(--red);}
+  .chip-amber{background:#fffbeb;color:#b45309;}
+  .chip-green{background:#f0fdf4;color:#15803d;}
+  .chip-blue{background:#eff6ff;color:#1d4ed8;}
+  .chip-gray{background:#f3f4f6;color:#4b5563;}
+  .blood-drop{width:96px;height:96px;background:linear-gradient(160deg,#d40022,#b3001b);border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px -10px rgba(179,0,27,.6);}
+  .blood-drop > span{transform:rotate(45deg);color:#fff;font-weight:800;font-size:30px;letter-spacing:-.02em;}
+  .toggle{width:44px;height:26px;background:#d4d6db;border-radius:999px;position:relative;transition:.2s;cursor:pointer;flex-shrink:0;}
+  .toggle.on{background:var(--red);}
+  .toggle::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;}
+  .toggle.on::after{transform:translateX(18px);}
+  .seg{padding:8px 4px;border-radius:10px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;border:1px solid #eef0f3;color:#4b5563;transition:.15s;}
+  .seg.selected{background:var(--red);color:#fff;border-color:var(--red);}
+  .seg:hover:not(.selected){background:var(--red-soft);color:var(--red);}
+  .score-bar{height:6px;border-radius:999px;background:#f3f4f6;overflow:hidden;}
+  .score-fill{height:100%;background:linear-gradient(90deg,#b3001b,#ff4d6a);border-radius:999px;transition:width .5s;}
+  .chat-bub{padding:8px 12px;border-radius:14px;font-size:13px;max-width:80%;}
+  .chat-me{background:var(--red);color:#fff;border-bottom-right-radius:4px;align-self:flex-end;}
+  .chat-them{background:#f3f4f6;color:#1f2937;border-bottom-left-radius:4px;align-self:flex-start;}
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:500;z-index:100;box-shadow:0 10px 30px -8px rgba(0,0,0,.3);animation:toastIn .3s ease both;}
+  @keyframes toastIn{from{transform:translate(-50%,20px);opacity:0;}to{transform:translate(-50%,0);opacity:1;}}
+  .logo-mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#d40022,#b3001b);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;box-shadow:0 6px 16px -4px rgba(179,0,27,.5);}
+  .floating-nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid #eef0f3;}
+  .skeleton-shimmer{background:linear-gradient(90deg,#f3f4f6 25%,#e9eaee 37%,#f3f4f6 63%);background-size:400% 100%;animation:shimmer 1.4s infinite;}
+  @keyframes shimmer{0%{background-position:100% 0;}100%{background-position:-100% 0;}}
+  .grid-bg{background-image:radial-gradient(circle at 1px 1px,#eef0f3 1px,transparent 0);background-size:22px 22px;}
+  .admin-row:hover{background:var(--red-soft);}
+</style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0px}.-right-12{right:-3rem}.-top-12{top:-3rem}.top-0{top:0px}.z-40{z-index:40}.z-\[60\]{z-index:60}.mx-auto{margin-left:auto;margin-right:auto}.-mt-0\.5{margin-top:-0.125rem}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mt-0\.5{margin-top:0.125rem}.mt-3{margin-top:0.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}.mt-7{margin-top:1.75rem}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-1\.5{height:0.375rem}.h-14{height:3.5rem}.h-16{height:4rem}.h-40{height:10rem}.h-7{height:1.75rem}.h-\[80vh\]{height:80vh}.min-h-screen{min-height:100vh}.w-1\.5{width:0.375rem}.w-40{width:10rem}.w-7{width:1.75rem}.w-full{width:100%}.max-w-md{max-width:28rem}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.flex-col{flex-direction:column}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-2\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.625rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.625rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-t-3xl{border-top-left-radius:1.5rem;border-top-right-radius:1.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-gray-100{--tw-border-opacity:1;border-color:rgb(243 244 246 / var(--tw-border-opacity, 1))}.bg-black\/40{background-color:rgb(0 0 0 / 0.4)}.bg-gray-50{--tw-bg-opacity:1;background-color:rgb(249 250 251 / var(--tw-bg-opacity, 1))}.bg-green-50{--tw-bg-opacity:1;background-color:rgb(240 253 244 / var(--tw-bg-opacity, 1))}.bg-green-500{--tw-bg-opacity:1;background-color:rgb(34 197 94 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/90{background-color:rgb(255 255 255 / 0.9)}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.pb-20{padding-bottom:5rem}.pb-4{padding-bottom:1rem}.pt-5{padding-top:1.25rem}.text-center{text-align:center}.text-\[10\.5px\]{font-size:10.5px}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-\[12\.5px\]{font-size:12.5px}.text-\[12px\]{font-size:12px}.text-\[13px\]{font-size:13px}.text-\[14px\]{font-size:14px}.text-\[15px\]{font-size:15px}.text-\[16px\]{font-size:16px}.text-\[18px\]{font-size:18px}.text-\[26px\]{font-size:26px}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.leading-\[1\.1\]{line-height:1.1}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-gray-600{--tw-text-opacity:1;color:rgb(75 85 99 / var(--tw-text-opacity, 1))}.text-gray-700{--tw-text-opacity:1;color:rgb(55 65 81 / var(--tw-text-opacity, 1))}.text-green-700{--tw-text-opacity:1;color:rgb(21 128 61 / var(--tw-text-opacity, 1))}.opacity-60{opacity:0.6}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}</style><script src="https://cdn.jsdelivr.net/npm/rrweb@2.0.0-alpha.4/dist/rrweb.min.js"></script></head>
+<body class="min-h-screen pb-20">
+<div style="background:#111;color:#fff;text-align:center;padding:8px;font:13px sans-serif">Design concept for Blood Network. Working app with real Cloudinary uploads: <a style="color:#ff8a8a;font-weight:bold" href="https://blood-network-amar.onrender.com">blood-network-amar.onrender.com</a></div>
+
+<!-- HEADER -->
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100">
+  <div class="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="logo-mark text-[15px]">BN</div>
+      <div class="leading-tight">
+        <div class="font-display font-extrabold text-[15px]">Blood Network</div>
+        <div class="text-[10px] text-gray-500 -mt-0.5">Hyderabad • Emergency donor match</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5 text-[10px] text-green-700 font-semibold bg-green-50 px-2 py-1 rounded-full">
+      <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>Live
+    </div>
+  </div>
+</header>
+
+<main class="max-w-md mx-auto px-4">
+
+  <!-- ============ HOME TAB ============ -->
+  <section id="tab-home" class="tab-panel pt-5 pb-4 fade-in">
+    <!-- Hero -->
+    <div class="relative overflow-hidden rounded-3xl bg-red-soft border border-red-border p-5 grid-bg">
+      <div class="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-red-soft opacity-60"></div>
+      <div class="relative">
+        <div class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-red bg-white px-2.5 py-1 rounded-full mb-3 shadow-sm">
+          <span class="w-1.5 h-1.5 bg-red rounded-full animate-pulse"></span>Emergency donor matching
+        </div>
+        <h1 class="font-display text-[26px] font-extrabold leading-[1.1] mb-2">
+          Need blood? Find a <span class="text-red">verified</span> nearby donor.
+        </h1>
+        <p class="text-[13px] text-gray-600 leading-relaxed mb-4">
+          Blood Network connects you with verified donors across Hyderabad in minutes. Every donation happens at an authorized blood bank.
+        </p>
+        <button onclick="goTab('sos')" class="pulse-ring btn-red w-full h-14 rounded-2xl font-display font-bold text-[16px] flex items-center justify-center gap-2 urgent-glow">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 6.5L21 9l-5 4.3L17.5 21 12 17l-5.5 4 1.5-7.7L3 9l6.6-.5L12 2z" fill="white"></path></svg>
+          Send emergency SOS
+        </button>
+        <div class="flex items-center justify-center gap-4 mt-3 text-[11px] text-gray-500">
+          <span class="flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"></path></svg>Verified donors</span>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="grid grid-cols-3 gap-2 mt-4">
+      <div class="card p-3 text-center"><div class="font-display font-extrabold text-red text-[18px]" id="stat-donors">12</div><div class="text-[10px] text-gray-500 mt-0.5">Verified donors</div></div>
+      <div class="card p-3 text-center"><div class="font-display font-extrabold text-red text-[18px]" id="stat-areas">12</div><div class="text-[10px] text-gray-500 mt-0.5">Hyderabad areas</div></div>
+      <div class="card p-3 text-center"><div class="font-display font-extrabold text-red text-[18px]">4</div><div class="text-[10px] text-gray-500 mt-0.5">Blood bank partners</div></div>
+    </div>
+
+    <!-- How it works -->
+    <h2 class="font-display text-[18px] font-bold mt-7 mb-1">How it works</h2>
+    <p class="text-[12px] text-gray-500 mb-3">From SOS to coordinated donation in 4 steps.</p>
+    <div class="space-y-2.5">
+      <div class="card p-3.5 flex gap-3 items-start">
+        <div class="step-num">1</div>
+        <div><div class="font-display font-bold text-[14px]">Send an SOS</div>
+          <p class="text-[12px] text-gray-600 mt-0.5">Share patient details, blood group, units, hospital and urgency.</p></div>
+      </div>
+      <div class="card p-3.5 flex gap-3 items-start">
+        <div class="step-num">2</div>
+        <div><div class="font-display font-bold text-[14px]">Smart ABO matching</div>
+          <p class="text-[12px] text-gray-600 mt-0.5">We rank verified, available donors by ABO compatibility, distance &amp; score.</p></div>
+      </div>
+      <div class="card p-3.5 flex gap-3 items-start">
+        <div class="step-num">3</div>
+        <div><div class="font-display font-bold text-[14px]">Contact via platform</div>
+          <p class="text-[12px] text-gray-600 mt-0.5">Chat with matched donors — phone numbers stay masked for safety.</p></div>
+      </div>
+      <div class="card p-3.5 flex gap-3 items-start">
+        <div class="step-num">4</div>
+        <div><div class="font-display font-bold text-[14px]">Donate at a blood bank</div>
+          <p class="text-[12px] text-gray-600 mt-0.5">Donations only happen at authorized blood banks. No home collections.</p></div>
+      </div>
+    </div>
+
+    <!-- Safety promise -->
+    <div class="card p-4 mt-5 border-red-border">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-7 h-7 rounded-lg bg-red-soft flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b3001b" stroke-width="2.2"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"></path><path d="M9 12l2 2 4-4"></path></svg>
+        </div>
+        <h3 class="font-display font-bold text-[15px]">Our Safety Promise</h3>
+      </div>
+      <ul class="space-y-2 text-[12.5px] text-gray-700">
+        <li class="flex gap-2"><span class="text-red">✓</span> Every donor is identity-verified before activation.</li>
+        <li class="flex gap-2"><span class="text-red">✓</span> Phone numbers are masked — all chats happen in-platform.</li>
+        <li class="flex gap-2"><span class="text-red">✓</span> Requests mentioning money or duplicates are held for review.</li>
+        <li class="flex gap-2"><span class="text-red">✓</span> Donations happen only at authorized blood banks — never private homes.</li>
+      </ul>
+    </div>
+
+    <!-- Footer badge -->
+    <div class="mt-6 mb-2 text-center">
+      <div class="inline-flex items-center gap-1.5 text-[11px] text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="#4b5563"><path d="M12 2l9 5v10l-9 5-9-5V7l9-5z" opacity=".4"></path><path d="M12 7l5 3v6l-5 3-5-3v-6l5-3z"></path></svg>
+        Images delivered with <span class="font-semibold text-gray-700">Cloudinary</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SOS TAB ============ -->
+  <section id="tab-sos" class="tab-panel hidden pt-5 pb-4">
+    <div id="sos-form-wrap"></div>
+    <div id="sos-active-wrap" class="hidden"></div>
+  </section>
+
+  <!-- ============ DONOR TAB ============ -->
+  <section id="tab-donor" class="tab-panel hidden pt-5 pb-4">
+    <div id="donor-wrap"></div>
+  </section>
+
+  <!-- ============ SAFETY TAB ============ -->
+  <section id="tab-safety" class="tab-panel hidden pt-5 pb-4">
+    <div id="safety-wrap"></div>
+  </section>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="floating-nav">
+  <div class="max-w-md mx-auto grid grid-cols-4 h-16">
+    <button onclick="goTab('home')" data-nav="home" class="nav-pill relative flex flex-col items-center justify-center gap-1 text-[10.5px] font-medium tab-active">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"></path></svg>
+      Home<span class="tab-bar"></span>
+    </button>
+    <button onclick="goTab('sos')" data-nav="sos" class="nav-pill relative flex flex-col items-center justify-center gap-1 text-gray-500 text-[10.5px] font-medium">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6l-8-4z"></path><path d="M12 8v4M12 16h.01"></path></svg>
+      SOS<span class="tab-bar"></span>
+    </button>
+    <button onclick="goTab('donor')" data-nav="donor" class="nav-pill relative flex flex-col items-center justify-center gap-1 text-gray-500 text-[10.5px] font-medium">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 11a4 4 0 10-8 0M12 14v6m-3-3h6"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      Donor<span class="tab-bar"></span>
+    </button>
+    <button onclick="goTab('safety')" data-nav="safety" class="nav-pill relative flex flex-col items-center justify-center gap-1 text-gray-500 text-[10.5px] font-medium">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"></path></svg>
+      Safety<span class="tab-bar"></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Chat Modal -->
+<div id="chat-modal" class="hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm items-end justify-center" style="display:none;">
+  <div class="bg-white w-full max-w-md rounded-t-3xl h-[80vh] flex flex-col" id="chat-panel"></div>
+</div>
+
+<script>
+/* =========================================================
+   Blood Network — single-file app
+   ========================================================= */
+const CLOUD_NAME = 'ms38g4qm';
+const cloudImg = (publicId, transforms={}) => {
+  const t = Object.entries(transforms).map(([k,v])=>`${k}_${v}`).join(',');
+  return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${t ? t + '/' : ''}v1/${publicId}.jpg`;
+};
+
+/* ---------- Areas with coordinates ---------- */
+const AREAS = {
+  'Secunderabad':[17.4399,78.4983],
+  'Jubilee Hills':[17.4324,78.4071],
+  'Kukatpally':[17.4844,78.4138],
+  'Charminar':[17.3616,78.4747],
+  'Gachibowli':[17.4401,78.3489],
+  'Banjara Hills':[17.4156,78.4347],
+  'Madhapur':[17.4483,78.3928],
+  'Ameerpet':[17.4374,78.4487],
+  'Begumpet':[17.4435,78.4608],
+  'Hitech City':[17.4435,78.3772],
+  'Kondapur':[17.4615,78.3668],
+  'LB Nagar':[17.3656,78.5543]
+};
+const AREA_LIST = Object.keys(AREAS);
+
+const BLOOD_GROUPS = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+const NEED_TYPES = ['Whole blood','Platelets','Plasma'];
+const URGENCIES = ['Critical','Urgent','Moderate'];
+
+const BLOOD_BANKS = [
+  'Red Cross Secunderabad','Chiranjeevi Jubilee Hills','Govt Blood Bank Kukatpally','Charminar Blood Centre'
+];
+
+/* Recipient can RECEIVE whole blood/platelets from: (donor types) */
+const RECIPIENT_RECEIVES_RBC = {
+  'O-':['O-'],'O+':['O-','O+'],'A-':['O-','A-'],'A+':['O-','O+','A-','A+'],
+  'B-':['O-','B-'],'B+':['O-','O+','B-','B+'],'AB-':['O-','A-','B-','AB-'],'AB+':['O-','O+','A-','A+','B-','B+','AB-','AB+']
+};
+/* Plasma reverse ABO — which donor types can give plasma to recipient */
+const RECIPIENT_RECEIVES_PLASMA = {
+  'O-':['O-','O+','A-','A+','B-','B+','AB-','AB+'],
+  'O+':['O-','O+','A-','A+','B-','B+','AB-','AB+'],
+  'A-':['A-','A+','AB-','AB+'],
+  'A+':['A-','A+','AB-','AB+'],
+  'B-':['B-','B+','AB-','AB+'],
+  'B+':['B-','B+','AB-','AB+'],
+  'AB-':['AB-','AB+'],
+  'AB+':['AB-','AB+']
+};
+
+const COOLDOWNS = {'Whole blood':90,'Plasma':28,'Platelets':14};
+
+/* ---------- Seed donors ---------- */
+const SEED_DONORS = [
+  {id:'D001',name:'Arjun Reddy',blood:'O-',area:'Jubilee Hills',verified:true,available:true,lastDonation:null,avatar:'donors/d001'},
+  {id:'D002',name:'Priya Sharma',blood:'A+',area:'Gachibowli',verified:true,available:true,lastDonation:null,avatar:'donors/d002'},
+  {id:'D003',name:'Mohammed Ali',blood:'B+',area:'Charminar',verified:true,available:true,lastDonation:null,avatar:'donors/d003'},
+  {id:'D004',name:'Sneha Iyer',blood:'AB+',area:'Madhapur',verified:false,available:true,lastDonation:null,avatar:'donors/d004'},
+  {id:'D005',name:'Vikram Rao',blood:'O+',area:'Kukatpally',verified:true,available:false,lastDonation:Date.now()-70*86400000,avatar:'donors/d005'},
+  {id:'D006',name:'Anita Nair',blood:'A-',area:'Banjara Hills',verified:true,available:true,lastDonation:null,avatar:'donors/d006'},
+  {id:'D007',name:'Karthik Naidu',blood:'B-',area:'LB Nagar',verified:true,available:true,lastDonation:Date.now()-20*86400000,avatar:'donors/d007'},
+  {id:'D008',name:'Divya Reddy',blood:'O+',area:'Kondapur',verified:true,available:true,lastDonation:null,avatar:'donors/d008'},
+  {id:'D009',name:'Sai Krishna',blood:'AB-',area:'Ameerpet',verified:true,available:true,lastDonation:null,avatar:'donors/d009'},
+  {id:'D010',name:'Lakshmi Prasad',blood:'A+',area:'Begumpet',verified:false,available:true,lastDonation:null,avatar:'donors/d010'},
+  {id:'D011',name:'Rajesh Goud',blood:'O-',area:'Secunderabad',verified:true,available:true,lastDonation:null,avatar:'donors/d011'},
+  {id:'D012',name:'Fatima Begum',blood:'B+',area:'Hitech City',verified:true,available:true,lastDonation:Date.now()-95*86400000,avatar:'donors/d012'},
+];
+
+/* ---------- State ---------- */
+const STORE_KEY = 'blood_network_v1';
+let state = loadState();
+
+function loadState(){
+  try{
+    const s = JSON.parse(localStorage.getItem(STORE_KEY));
+    if(s && s.donors && s.donors.length) return s;
+  }catch(e){}
+  const fresh = {
+    donors: SEED_DONORS.map(d=>({...d})),
+    requests: [],
+    activeRequestId: null,
+    reviewQueue: [],
+    donorProfile: null,
+    donorAlerts: [],
+    seedKey: 'seeded_v1'
+  };
+  saveState(fresh);
+  return fresh;
+}
+function saveState(s){ localStorage.setItem(STORE_KEY, JSON.stringify(s||state)); }
+
+/* ---------- Utils ---------- */
+function haversine(a,b){
+  const R=6371, toRad=d=>d*Math.PI/180;
+  const [la1,lo1]=a,[la2,lo2]=b;
+  const dLa=toRad(la2-la1), dLo=toRad(lo2-lo1);
+  const x=Math.sin(dLa/2)**2 + Math.cos(toRad(la1))*Math.cos(toRad(la2))*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));
+}
+function donorCoord(d){ return AREAS[d.area] || [17.385,78.4867]; }
+function fmtDate(ts){ return new Date(ts).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtTime(ts){ return new Date(ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); }
+function timeAgo(ts){
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<60) return `${s}s ago`;
+  if(s<3600) return `${Math.floor(s/60)}m ago`;
+  if(s<86400) return `${Math.floor(s/3600)}h ago`;
+  return `${Math.floor(s/86400)}d ago`;
+}
+function genId(){ return 'BN' + Math.random().toString(36).slice(2,7).toUpperCase(); }
+function moneyMention(t){ t=(t||'').toLowerCase(); return ['rs','rupees','₹','money','cash','pay','payment','paid','price','cost','fee','amount','salary','transfer','upi'].some(w=>t.includes(w)); }
+function toast(msg){
+  const old=document.querySelector('.toast'); if(old) old.remove();
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2400);
+}
+
+/* ---------- Matching ---------- */
+function compatibleDonors(request){
+  const recipientBg = request.bloodGroup;
+  const set = request.needType==='Plasma' ? RECIPIENT_RECEIVES_PLASMA[recipientBg] : RECIPIENT_RECEIVES_RBC[recipientBg];
+  return state.donors
+    .map(d=>{
+      if(!set.includes(d.blood)) return null;
+      const dist = Math.round(haversine(AREAS[request.area]||[17.385,78.4867], donorCoord(d))*10)/10;
+      let score = 0;
+      // exact ABO match bonus
+      if(d.blood===recipientBg) score += 40;
+      else score += 18; // compatible but not exact
+      if(d.verified) score += 22; else score += 5;
+      if(d.available) score += 20;
+      // distance score
+      score += Math.max(0, 20 - dist*0.6);
+      score = Math.round(score);
+      return {...d, dist, score, exact: d.blood===recipientBg};
+    })
+    .filter(Boolean)
+    .filter(d => d.dist <= request.radius)
+    .sort((a,b)=> b.score - a.score || a.dist - b.dist);
+}
+
+/* ---------- Render: tabs ---------- */
+function goTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.add('hidden'));
+  const panel = document.getElementById('tab-'+name);
+  panel.classList.remove('hidden');
+  panel.classList.add('fade-in');
+  document.querySelectorAll('[data-nav]').forEach(b=>{
+    b.classList.remove('tab-active');
+    b.classList.add('text-gray-500');
+  });
+  const active = document.querySelector(`[data-nav="${name}"]`);
+  active.classList.add('tab-active');
+  active.classList.remove('text-gray-500');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(name==='sos') renderSOS();
+  if(name==='donor') renderDonor();
+  if(name==='safety') renderSafety();
+}
+
+/* ---------- SOS render ---------- */
+function renderSOS(){
+  const active = state.requests.find(r=>r.id===state.activeRequestId);
+  if(active && active.status!=='completed' && active.status!=='suspended'){
+    document.getElementById('sos-form-wrap').classList.add('hidden');
+    const wrap = document.getElementById('sos-active-wrap');
+    wrap.classList.remove('hidden');
+    wrap.innerHTML = renderActiveRequest(active);
+  } else {
+    document.getElementById('sos-active-wrap').classList.add('hidden');
+    const wrap = document.getElementById('sos-form-wrap');
+    wrap.classList.remove('hidden');
+    wrap.innerHTML = renderSOSForm();
+  }
+}
+
+function renderSOSForm(){
+  const active = state.requests.find(r=>r.id===state.activeRequestId && r.status!=='completed' && r.status!=='suspended');
+  const bgOpts = BLOOD_GROUPS.map(b=>`<div class="seg" data-bg="${b}">${b}</div>`).join('');
+  const needOpts = NEED_TYPES.map(n=>`<div class="seg" data-need="${n}">${n}</div>`).join('');
+  const urgOpts = URGENCIES.map(u=>{
+    const color = u==='Critical'?'chip-red':u==='Urgent'?'chip-amber':'chip-blue';
+    return `<div class="seg" data-urg="${u}">${u}</div>`;
+  }).join('');
+  const areaOpts = AREA_LIST.map(a=>`<option value="${a}">${a}</option>`).join('');
+  const bankOpts = BLOOD_BANKS.map(b=>`<option value="${b}">${b}</option>`).join('');
+  return `
+  <div class="card p-4">
+    <div class="flex items-center gap-2 mb-1">
+      <div class="w-8 h-8 rounded-xl bg-red-soft flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b3001b" stroke-width="2.4"><path d="M12 2L4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6l-8-4z"/></svg></div>
+      <div>
+        <h2 class="font-display font-bold text-[16px]">Emergency SOS</h2>
+        <p class="text-[11px] text-gray-500">All fields required. Matches are potential donors — donations happen at blood banks only.</p>
+      </div>
+    </div>
+
+    <div class="space-y-4 mt-4">
+      <div>
+        <label class="text-[12px] font-semibold text-gray-700">Patient name</label>
+        <input id="f-patient" type="text" placeholder="e.g. Ramesh / for a relative" class="mt-1 w-full h-11 px-3.5 rounded-xl border border-gray-200 focus:ring-2 ring-red outline-none">
+      </div>
+
+      <div>
+        <label class="text-[12px] font-semibold text-gray-700">Blood group needed</label>
+        <div class="grid grid-cols-4 gap-1.5 mt-1.5" id="bg-grid">${bgOpts}</div>
+      </div>
+
+      <div>
+        <label class="text-[12px] font-semibold text-gray-700">Need type</label>
+        <div class="grid grid-cols-3 gap-1.5 mt-1.5" id="need-grid">${needOpts}</div>
+        <p class="text-[10.5px] text-gray-500 mt-1.5">Plasma uses reverse ABO compatibility. Platelets follow RBC rules.</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-[12px] font-semibold text-gray-700">Units</label>
+          <input id="f-units" type="number" min="1" max="10" value="1" class="mt-1 w-full h-11 px-3.5 rounded-xl border border-gray-200 focus:ring-2 ring-red outline-none">
+        </div>
+        <div>
+          <label class="text-[12px] font-semibold text-gray-700">Area</label>
+          <select id="f-area" class="mt-1 w-full h-11 px-3 rounded-xl border border-gray-200 focus:ring-2 ring-red outline-none bg-white">
+            ${areaOpts}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-[12px] font-semibold text-gray-700">Urgency</label>
+        <div class="grid grid-cols-3 gap-1.5 mt-1.5" id="urg-grid">${urgOpts}</div>
+      </div>
+
+      <div>
+        <label class="text-[12px] font-semibold text-gray-700">Hospital / Blood bank</label>
+        <select id="f-bank" class="mt-1 w-full h-11 px-3.5 rounded-xl border border-gray-200 focus:ring-2 ring-red outline-none bg-white">
+          ${bankOpts}
+          <option value="other">Other (specify)</option>
+        </select>
+      </div>
+
+      <button onclick="submitSOS()" class="btn-red w-full h-13 py-3.5 rounded-2xl font-display font-bold text-[15px] flex items-center justify-center gap-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Broadcast SOS
+      </button>
+      ${active ? `<button onclick="cancelSOS()" class="w-full mt-2 py-2.5 text-[12px] text-gray-500 font-medium">Cancel current request</button>` : ''}
+    </div>
+  </div>
+
+  <script>
+    // segment selection handlers
+    ['bg-grid','need-grid','urg-grid'].forEach(id=>{
+      const grid = document.getElementById(id);
+      grid.querySelectorAll('.seg').forEach(s=>{
+        s.addEventListener('click',()=>{
+          grid.querySelectorAll('.seg').forEach(x=>x.classList.remove('selected'));
+          s.classList.add('selected');
+        });
+      });
+    });
+  <\/script>`;
+}
+
+/* SOS form handling */
+function getFormSelections(){
+  const bg = document.querySelector('#bg-grid .selected')?.dataset.bg;
+  const need = document.querySelector('#need-grid .selected')?.dataset.need;
+  const urg = document.querySelector('#urg-grid .selected')?.dataset.urg;
+  return {bg,need,urg};
+}
+function submitSOS(){
+  const patient = document.getElementById('f-patient').value.trim() || 'Anonymous patient';
+  const {bg,need,urg} = getFormSelections();
+  const units = parseInt(document.getElementById('f-units').value)||1;
+  const area = document.getElementById('f-area').value;
+  let bank = document.getElementById('f-bank').value;
+  if(!bg || !need || !urg){ toast('Please pick blood group, need type & urgency'); return; }
+
+  // Fraud checks
+  const signature = `${bg}|${bank}|${area}`;
+  const recentDup = state.requests.find(r => r.signature===signature && Date.now()-r.createdAt < 6*3600000 && r.status!=='suspended');
+  const hasMoney = moneyMention(patient) || moneyMention(bank);
+
+  const id = genId();
+  const request = {
+    id, patient, bloodGroup:bg, needType:need, units, area, urgency:urg, hospital:bank,
+    signature, createdAt: Date.now(),
+    status: hasMoney || recentDup ? 'review' : 'searching',
+    radius: 8,
+    timeline: [
+      {ts:Date.now(), label:'SOS broadcast', type:'start'},
+      ...(hasMoney?[{ts:Date.now(),label:'⚠ Mention of payment detected — held for admin review',type:'review'}]:[]),
+      ...(recentDup?[{ts:Date.now(),label:'⚠ Possible duplicate of an earlier request — held for review',type:'review'}]:[]),
+    ],
+    escalated:false,
+    contactedDonors:[],
+  };
+  state.requests.unshift(request);
+  if(request.status==='review'){
+    state.reviewQueue.push({type:'request', refId:id, reason: hasMoney?'Mention of money in patient field':'Duplicate request suspected', ts:Date.now(), patient});
+  } else {
+    state.activeRequestId = id;
+  }
+  saveState(state);
+
+  if(request.status==='review'){
+    toast('⚠ Request held for admin review');
+    goTab('safety');
+    renderSafety();
+  } else {
+    toast('SOS broadcast — searching for donors…');
+    // simulate donor found after 1.2s
+    setTimeout(()=>{
+      const req = state.requests.find(r=>r.id===id);
+      if(!req || req.status!=='searching') return;
+      const matches = compatibleDonors(req);
+      if(matches.length){
+        req.status='donor_found';
+        req.timeline.push({ts:Date.now(), label:`Donor found — ${matches[0].name} (${matches[0].blood})`, type:'found'});
+        saveState(state); renderSOS();
+      }
+    }, 1300);
+    renderSOS();
+  }
+}
+
+function cancelSOS(){
+  state.activeRequestId = null;
+  const r = state.requests.find(x=>x.id===state.activeRequestId);
+  if(r){ r.status='completed'; r.timeline.push({ts:Date.now(),label:'Request closed',type:'close'}); }
+  saveState(state);
+  toast('Request cancelled');
+  renderSOS();
+}
+
+/* Active request view */
+function renderActiveRequest(r){
+  const matches = compatibleDonors(r);
+  const statuses = ['Searching','Donor Found','Contacted','Donation Coordinated','Completed'];
+  const statusIdx = ({searching:0,donor_found:1,contacted:2,coordinated:3,completed:4})[r.status] ?? 0;
+
+  const matchCards = matches.slice(0,8).map((d,i)=>`
+    <div class="card p-3 flex items-center gap-3">
+      <div class="relative">
+        <img src="${cloudImg(d.avatar,{w:96,h:96,c:'fill',g:'face',q:'auto',f:'jpg'})}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-11 h-11 rounded-full bg-red-soft flex items-center justify-center font-bold text-red text-[14px]',textContent:'${d.name.split(' ').map(x=>x[0]).join('')}'}))" class="w-11 h-11 rounded-full object-cover" alt="${d.name}">
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5">
+          <span class="font-semibold text-[13px] truncate">${d.name}</span>
+          ${d.verified?'<span class="badge-verified">✓ Verified</span>':''}
+          ${i===0?'<span class="chip chip-red">Best match</span>':''}
+        </div>
+        <div class="flex items-center gap-2 text-[11px] text-gray-500 mt-0.5">
+          <span class="font-bold text-red">${d.blood}</span>
+          <span>•</span><span>${d.area}</span>
+          <span>•</span><span>${d.dist} km</span>
+        </div>
+        <div class="score-bar mt-1.5"><div class="score-fill" style="width:${Math.min(100,d.score)}%"></div></div>
+      </div>
+      <div class="text-right flex flex-col items-end gap-1">
+        <div class="font-display font-bold text-[13px] text-red">${d.score}</div>
+        <div class="text-[9px] text-gray-400 uppercase tracking-wide">score</div>
+        <button onclick="openChat('${d.id}','${r.id}')" class="btn-ghost text-[11px] px-2.5 py-1.5 rounded-lg font-semibold">Contact</button>
+      </div>
+    </div>`).join('') || `<div class="card p-4 text-center text-[12px] text-gray-500">No compatible donors in ${r.radius} km radius yet. Try escalating.</div>`;
+
+  const timelineItems = r.timeline.map(t=>{
+    const icon = ({start:'⚡',found:'✓',review:'⚠',escalate:'↑',bank:'🏦',contact:'💬',coordinated:'🏥',completed:'✓',close:'○'})[t.type] || '•';
+    const color = ({start:'#b3001b',found:'#15803d',review:'#b45309',escalate:'#b3001b',bank:'#1d4ed8',contact:'#b3001b',coordinated:'#15803d',completed:'#15803d',close:'#9ca3af'})[t.type] || '#9ca3af';
+    return `<div class="timeline-item relative pl-12 pb-4">
+      <div class="timeline-line"></div>
+      <div class="timeline-dot absolute left-0 top-0" style="background:${color}22;color:${color}">${icon}</div>
+      <div class="text-[12.5px] font-medium text-gray-800">${t.label}</div>
+      <div class="text-[10.5px] text-gray-400">${fmtTime(t.ts)} • ${timeAgo(t.ts)}</div>
+    </div>`;
+  }).join('');
+
+  const statusChips = statuses.map((s,i)=>{
+    const done = i<=statusIdx;
+    const active = i===statusIdx;
+    return `<div class="flex-1 text-center">
+      <div class="mx-auto w-6 h-6 rounded-full ${done?'bg-red':'bg-gray-200'} text-white flex items-center justify-center text-[11px] font-bold mb-1">${i+1}</div>
+      <div class="text-[9.5px] ${active?'text-red font-bold':done?'text-gray-700':'text-gray-400'} leading-tight">${s}</div>
+    </div>`;
+  }).join('');
+
+  const urgColor = r.urgency==='Critical'?'chip-red':r.urgency==='Urgent'?'chip-amber':'chip-blue';
+
+  return `
+    <!-- Shareable Emergency Card -->
+    <div class="card urgent-glow overflow-hidden scale-pop">
+      <div class="bg-red px-4 py-2 flex items-center justify-between">
+        <div class="flex items-center gap-1.5 text-white text-[11px] font-bold"><span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>EMERGENCY SOS</div>
+        <div class="text-white/80 text-[10px] font-mono">${r.id}</div>
+      </div>
+      <div class="p-4 flex items-center gap-4">
+        <div class="blood-drop"><span>${r.bloodGroup}</span></div>
+        <div class="flex-1">
+          <div class="font-display font-bold text-[15px]">${r.patient}</div>
+          <div class="text-[12px] text-gray-600 mt-0.5">needs <b>${r.units} unit${r.units>1?'s':''}</b> of <b>${r.needType}</b></div>
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            <span class="chip ${urgColor}">${r.urgency}</span>
+            <span class="chip chip-gray">📍 ${r.area}</span>
+            <span class="chip chip-gray">🏥 ${r.hospital}</span>
+          </div>
+        </div>
+      </div>
+      <div class="px-4 pb-4">
+        <a onclick="shareWhatsApp('${r.id}')" class="btn-red w-full py-3 rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 cursor-pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.5 14.4l-2.6-.6c-.4-.1-.7 0-.9.3l-1.4 1.4c-2.1-1-3.8-2.7-4.8-4.8l1.4-1.4c.3-.2.4-.6.3-.9l-.6-2.6c-.1-.5-.6-.9-1.1-.9H4.8C4.3 5 4 5.4 4 5.9 4 12 9 17 15.1 17c.5 0 .9-.3 1-.8v-1.7c0-.5-.4-1-.9-1z"/><path d="M20 4H4v16h16V4zm-9 14v-3h2v3h-2zm5 0v-7h2v7h-2zm-10 0V8h2v10H6z" fill="white" opacity=".0"/></svg>
+          Share on WhatsApp
+        </a>
+        <div class="text-center text-[10px] text-gray-400 mt-2">Tap to share with family & community groups</div>
+      </div>
+    </div>
+
+    <!-- Live Tracker -->
+    <div class="card p-4 mt-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-display font-bold text-[14px]">Live Tracker</h3>
+        <span class="chip ${r.status==='review'?'chip-amber':'chip-green'}">${r.status==='review'?'Under review':'Live'}</span>
+      </div>
+      <div class="flex items-start gap-1 mb-4 px-1">${statusChips}</div>
+      <div class="relative pl-1">
+        ${timelineItems}
+      </div>
+    </div>
+
+    <!-- Matched donors -->
+    <div class="mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-display font-bold text-[14px]">Matched donors</h3>
+        <span class="text-[11px] text-gray-500">${matches.length} potential match${matches.length!==1?'es':''} • within ${r.radius} km</span>
+      </div>
+      <div class="space-y-2">${matchCards}</div>
+      <p class="text-[10.5px] text-gray-400 mt-2 text-center">Phone numbers are masked. Contact donors via in-platform chat only.</p>
+    </div>
+
+    <!-- Escalation -->
+    <div class="card p-4 mt-4 border-red-border">
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 rounded-xl bg-red-soft flex items-center justify-center flex-shrink-0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b3001b" stroke-width="2.2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="font-display font-bold text-[14px]">No reply from donors?</h3>
+          <p class="text-[12px] text-gray-600 mt-0.5 mb-3">If no donor responds within ~10 minutes, escalate to widen the search and notify partner blood banks.</p>
+          <button onclick="escalate('${r.id}')" class="btn-red w-full py-3 rounded-xl font-bold text-[13px] ${r.escalated?'opacity-60':''}" ${r.escalated?'disabled':''}>
+            ${r.escalated?'Already escalated':'Simulate 10 minutes with no reply'}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="closeRequest('${r.id}')" class="w-full mt-4 py-3 text-[13px] text-gray-500 font-medium rounded-xl border border-gray-200">Close this request</button>
+  `;
+}
+
+function shareWhatsApp(id){
+  const r = state.requests.find(x=>x.id===id); if(!r) return;
+  const text = `🩸 *BLOOD EMERGENCY — ${r.urgency.toUpperCase()}* 🩸%0A%0APatient: ${r.patient}%0ABlood group needed: ${r.bloodGroup}%0ANeed: ${r.needType} — ${r.units} unit${r.units>1?'s':''}%0AArea: ${r.area}%0AHospital: ${r.hospital}%0ARequest ID: ${r.id}%0A%0APlease share widely. Donate via Blood Network at an authorized blood bank.`;
+  window.open(`https://wa.me/?text=${text}`,'_blank');
+}
+
+function escalate(id){
+  const r = state.requests.find(x=>x.id===id); if(!r || r.escalated) return;
+  r.escalated = true;
+  r.radius = r.radius * 2;
+  r.timeline.push({ts:Date.now(), label:`Escalated — search radius widened to ${r.radius} km`, type:'escalate'});
+  r.timeline.push({ts:Date.now(), label:'Alerting additional compatible donors…', type:'escalate'});
+  BLOOD_BANKS.forEach(b=>{
+    r.timeline.push({ts:Date.now(), label:`Notified ${b} to prepare inventory`, type:'bank'});
+  });
+  saveState(state);
+  toast('Escalation triggered — blood banks notified');
+  renderSOS();
+}
+
+function closeRequest(id){
+  const r = state.requests.find(x=>x.id===id); if(!r) return;
+  r.status = 'completed';
+  r.timeline.push({ts:Date.now(),label:'Request closed by requester',type:'completed'});
+  if(state.activeRequestId===id) state.activeRequestId = null;
+  saveState(state);
+  toast('Request closed');
+  renderSOS();
+}
+
+/* ---------- Chat (masked contact) ---------- */
+let chatOpenDonor = null;
+function openChat(donorId, reqId){
+  const d = state.donors.find(x=>x.id===donorId); if(!d) return;
+  chatOpenDonor = {d, reqId};
+  const modal = document.getElementById('chat-modal');
+  modal.style.display = 'flex';
+  modal.classList.remove('hidden');
+  document.getElementById('chat-panel').innerHTML = `
+    <div class="px-4 h-14 border-b border-gray-100 flex items-center gap-3">
+      <button onclick="closeChat()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+      <img src="${cloudImg(d.avatar,{w:80,h:80,c:'fill',g:'face'})}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-9 h-9 rounded-full bg-red-soft flex items-center justify-center font-bold text-red text-[13px]',textContent:'${d.name.split(' ').map(x=>x[0]).join('')}'}))" class="w-9 h-9 rounded-full object-cover">
+      <div class="flex-1">
+        <div class="font-semibold text-[13px] flex items-center gap-1.5">${d.name} ${d.verified?'<span class="badge-verified">✓</span>':''}</div>
+        <div class="text-[10.5px] text-gray-500 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>${d.blood} • ${d.area} • <span class="badge-mask">📱 masked</span>
+        </div>
+      </div>
+    </div>
+    <div id="chat-thread" class="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
+      <div class="text-center text-[10px] text-gray-400 py-1">Contact masking is ON — do not share phone numbers or money.</div>
+      <div class="chat-bub chat-them">Hello, I saw your blood request. I'm available to donate at ${d.area}.</div>
+      <div class="chat-bub chat-them">I can come to the blood bank you mentioned. When should I visit?</div>
+    </div>
+    <div class="border-t border-gray-100 p-3 bg-white">
+      <div class="flex items-center gap-2">
+        <input id="chat-input" type="text" placeholder="Type a message…" class="flex-1 h-10 px-3 rounded-full border border-gray-200 focus:ring-2 ring-red outline-none text-[13px]">
+        <button onclick="sendChat()" class="btn-red w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+      </div>
+      <div class="flex items-center gap-2 mt-2">
+        <button onclick="reportFromChat()" class="text-[11px] text-gray-500 font-medium flex items-center gap-1 hover:text-red">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V4M4 4l16 4-7 4 7 6-16-4z"/></svg>Report (asked for money / fake)
+        </button>
+      </div>
+    </div>
+  `;
+}
+function closeChat(){
+  document.getElementById('chat-modal').style.display='none';
+  document.getElementById('chat-modal').classList.add('hidden');
+  chatOpenDonor=null;
+}
+function sendChat(){
+  const inp = document.getElementById('chat-input');
+  const v = inp.value.trim(); if(!v) return;
+  const thread = document.getElementById('chat-thread');
+  // detect money mention -> mask
+  if(moneyMention(v)){
+    thread.insertAdjacentHTML('beforeend',`<div class="chat-bub chat-me">${v}</div>`);
+    thread.insertAdjacentHTML('beforeend',`<div class="text-center text-[10px] text-amber-700 bg-amber-50 py-1.5 px-3 rounded-lg mx-auto">⚠ We detected a possible money mention. This message has been flagged for review. Donations are voluntary and free.</div>`);
+    state.reviewQueue.push({type:'chat_money',refId:chatOpenDonor.reqId, donorId:chatOpenDonor.d.id, reason:'Money mention in chat', ts:Date.now()});
+    saveState(state);
+  } else {
+    thread.insertAdjacentHTML('beforeend',`<div class="chat-bub chat-me">${v}</div>`);
+    setTimeout(()=>{
+      thread.insertAdjacentHTML('beforeend',`<div class="chat-bub chat-them">Sure, I'll head to the blood bank shortly. Please confirm the time.</div>`);
+      thread.scrollTop = thread.scrollHeight;
+    }, 800);
+  }
+  inp.value='';
+  thread.scrollTop = thread.scrollHeight;
+}
+function reportFromChat(){
+  if(!chatOpenDonor) return;
+  state.reviewQueue.push({type:'donor_report', refId:chatOpenDonor.d.id, reason:'Reporter flagged: asked for money / fake profile', ts:Date.now()});
+  saveState(state);
+  toast('Report submitted for admin review');
+  closeChat();
+}
+
+/* ---------- DONOR PAGE ---------- */
+function renderDonor(){
+  const wrap = document.getElementById('donor-wrap');
+  if(!state.donorProfile){
+    wrap.innerHTML = renderDonorRegister();
+    bindDonorRegister();
+    return;
+  }
+  const p = state.donorProfile;
+  wrap.innerHTML = renderDonorDashboard(p);
+  bindDonorDashboard(p);
+}
+
+function renderDonorRegister(){
+  const bgOpts = BLOOD_GROUPS.map(b=>`option value="${b}"`).join('').replace(/option/g,'<option').replace(/"/g,'">');
+  const areaOpts = AREA_LIST.map(a=>`<option value="${a}">${a}</option>`).join('');
+  return `
+    <div class="card p-4">
+      <div class="flex items-center gap-2 mb-1">
+        <div class="w-8 h-8 rounded-xl bg-red-soft flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b3001b" stroke-width="2.2"><circle cx="12" cy="7" r="4"/><path d="M16 11a4 4 0 10-8 0M12 14v6m-3-3h6"/></svg></div>
+        <div>
+          <h2 class="font-display font-bold text-[16px]">Become a donor</h2>
+          <p class="text-[11px] text-gray-500">Join Hyderabad's verified donor network. Save lives near you.</p>
+        </div>
+      </div>
+      <div class="space-y-3 mt-4">
+        <div>
+          <label class="text-[12px] font-semibold text-gray-700">Full name</label>
+          <input id="r-name" type="text" placeholder="Your name" class="mt-1 w-full h-11 px-3.5 rounded-xl border border-gray-200 focus:ring-2 ring-red outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[12px] font-semibold text-gray-700">Blood group</label>
+            <select id="r-bg" class="mt-1 w-full h-11 px-3 rounded-xl border border-gray-200 focus:ring-2 ring-red outline-none bg-white">
+              ${BLOOD_GROUPS.map(b=>`<option value="${b}">${b}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="text-[12px] font-semibold text-gray-700">Area</label>
+            <select id="r-area" class="mt-1 w-full h-11 px-3 rounded-xl border border-gray-200 focus:ring-2 ring-red outline-none bg-white">
+              ${areaOpts}
+            </select>
+          </div>
+        </div>
+        <div class="bg-red-soft rounded-xl p-3 text-[11.5px] text-gray-700 border border-red-border">
+          <b class="text-red">Verification:</b> A Blood Network volunteer will verify your ID at a partner blood bank before your profile becomes active. Until then, you'll appear as unverified.
+        </div>
+        <button id="r-submit" onclick="registerDonor()" class="btn-red w-full py-3.5 rounded-2xl font-display font-bold text-[14px]">Register as donor</button>
+      </div>
+    </div>`;
+}
+function bindDonorRegister(){ /* placeholder */ }
+function registerDonor(){
+  const name = document.getElementById('r-name').value.trim();
+  if(!name){ toast('Enter your name'); return; }
+  const bg = document.getElementById('r-bg').value;
+  const area = document.getElementById('r-area').value;
+  const id = 'D' + Math.random().toString(36).slice(2,6).toUpperCase();
+  state.donorProfile = {
+    id, name, blood:bg, area, verified:false, available:true, lastDonation:null, avatar:`donors/${id.toLowerCase()}`,
+    donations: []
+  };
+  state.donors.push({...state.donorProfile});
+  state.donorAlerts = state.donorAlerts || [];
+  // seed an incoming alert for demo
+  state.donorAlerts.unshift({
+    id:'A'+Date.now(),
+    requestId:'BNDEMO1',
+    patient:'Emergency patient',
+    bloodGroup:bg, needType:'Whole blood', units:1, area, urgency:'Urgent', hospital:'Red Cross Secunderabad',
+    createdAt: Date.now(), status:'pending', score: 78
+  });
+  saveState(state);
+  toast('Welcome, donor! Profile created.');
+  renderDonor();
+}
+
+function renderDonorDashboard(p){
+  const today = Date.now();
+  const last = p.lastDonation ? p.lastDonation : null;
+  const cooldown = p.lastDonationType ? COOLDOWNS[p.lastDonationType] : 0;
+  let nextEligibleTs = last ? last + cooldown*86400000 : 0;
+  const eligible = !last || today>=nextEligibleTs;
+
+  const cdItems = Object.entries(COOLDOWNS).map(([k,d])=>{
+    return `<div class="flex items-center justify-between py-2 px-3 rounded-xl bg-gray-50">
+      <span class="text-[12.5px] font-medium text-gray-700">${k}</span>
+      <span class="text-[12px] font-semibold text-gray-900">${d} days cooldown</span>
+    </div>`;
+  }).join('');
+
+  const alerts = (state.donorAlerts||[]).filter(a=>a.status==='pending');
+  const alertCards = alerts.map(a=>`
+    <div class="card p-3.5 border-l-4 border-red-border">
+      <div class="flex items-center justify-between">
+        <div class="chip chip-red">${a.urgency}</div>
+        <span class="text-[10px] text-gray-400">${timeAgo(a.createdAt)}</span>
+      </div>
+      <div class="mt-2 text-[13px] font-semibold">Blood needed: <span class="text-red">${a.bloodGroup}</span> • ${a.needType}</div>
+      <div class="text-[11.5px] text-gray-600 mt-0.5">${a.units} unit(s) • ${a.area} • ${a.hospital}</div>
+      <div class="flex items-center gap-2 mt-1.5">
+        <span class="badge-mask">📱 contact masked</span>
+        <span class="chip chip-gray">match score ${a.score}</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 mt-3">
+        <button onclick="donorRespond('${a.id}','accept')" class="btn-red py-2.5 rounded-xl font-bold text-[12.5px]">I can donate</button>
+        <button onclick="donorRespond('${a.id}','decline')" class="btn-ghost py-2.5 rounded-xl font-bold text-[12.5px]">Decline</button>
+      </div>
+    </div>`).join('') || `<div class="card p-6 text-center text-gray-500 text-[12.5px]">No active alerts. You'll be notified when someone nearby needs your blood group.</div>`;
+
+  return `
+    <!-- Profile header -->
+    <div class="card p-4">
+      <div class="flex items-center gap-3">
+        <img src="${cloudImg(p.avatar,{w:120,h:120,c:'fill',g:'face'})}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'w-14 h-14 rounded-full bg-red-soft flex items-center justify-center font-bold text-red text-[18px]',textContent:'${p.name.split(' ').map(x=>x[0]).join('')}'}))" class="w-14 h-14 rounded-full object-cover">
+        <div class="flex-1">
+          <div class="flex items-center gap-1.5">
+            <h2 class="font-display font-bold text-[16px]">${p.name}</h2>
+            ${p.verified?'<span class="badge-verified">✓ Verified</span>':'<span class="chip chip-amber">Pending verification</span>'}
+          </div>
+          <div class="text-[11.5px] text-gray-500 mt-0.5">${p.blood} • ${p.area} • ${p.id}</div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+        <div>
+          <div class="text-[11px] text-gray-500">Availability</div>
+          <div class="font-semibold text-[13px] ${p.available?'text-green-600':'text-gray-400'}">${p.available?'Available':'Not available'}</div>
+        </div>
+        <div id="availability-toggle" class="toggle ${p.available?'on':''}" onclick="toggleAvailability()"></div>
+      </div>
+    </div>
+
+    <!-- Eligibility -->
+    <div class="card p-4 mt-3">
+      <h3 class="font-display font-bold text-[14px] mb-2">Donation eligibility</h3>
+      ${eligible ? `
+        <div class="flex items-center gap-2 text-green-700 bg-green-50 rounded-xl p-3">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>
+          <div class="text-[12.5px] font-medium">You're eligible to donate now.</div>
+        </div>
+      ` : `
+        <div class="flex items-center gap-2 text-amber-700 bg-amber-50 rounded-xl p-3">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <div class="text-[12.5px] font-medium">Next eligible: <b>${fmtDate(nextEligibleTs)}</b></div>
+        </div>
+      `}
+      <div class="mt-3 space-y-1.5">${cdItems}</div>
+      ${p.lastDonation ? `<div class="text-[11px] text-gray-500 mt-2">Last donation: ${fmtDate(p.lastDonation)} (${p.lastDonationType||'Whole blood'})</div>`:''}
+    </div>
+
+    <!-- Alerts inbox -->
+    <div class="mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-display font-bold text-[14px]">Alerts inbox</h3>
+        <span class="text-[11px] text-gray-500">${alerts.length} pending</span>
+      </div>
+      <div class="space-y-2.5">${alertCards}</div>
+    </div>
+  `;
+}
+function bindDonorDashboard(p){ /* handled inline */ }
+
+function toggleAvailability(){
+  const p = state.donorProfile; if(!p) return;
+  p.available = !p.available;
+  const d = state.donors.find(x=>x.id===p.id); if(d) d.available = p.available;
+  saveState(state);
+  renderDonor();
+}
+function donorRespond(alertId, resp){
+  const a = state.donorAlerts.find(x=>x.id===alertId); if(!a) return;
+  a.status = resp;
+  if(resp==='accept'){
+    // mark donor as in cooldown (simulate a donation scheduling)
+    const p = state.donorProfile;
+    // for demo: do not change eligibility until actual donation; just notify request
+    const req = state.requests.find(r=>r.id===a.requestId);
+    if(req){
+      req.status = req.status==='completed'?'completed':'contacted';
+      req.timeline.push({ts:Date.now(), label:`Donor ${p.name} accepted — coordinating at blood bank`, type:'coordinated'});
+    }
+    toast("You said 'I can donate' — coordinator will follow up via chat");
+  } else {
+    toast('Alert declined — you will not be contacted for this request');
+  }
+  saveState(state);
+  renderDonor();
+}
+
+/* ---------- SAFETY PAGE ---------- */
+function renderSafety(){
+  const wrap = document.getElementById('safety-wrap');
+  const queue = state.reviewQueue || [];
+  const queueCards = queue.map((q,i)=>{
+    return `<div class="admin-row card p-3.5 border-l-4 border-amber-400">
+      <div class="flex items-center justify-between">
+        <span class="chip ${q.type==='donor_report'?'chip-amber':'chip-amber'}">${q.type==='donor_report'?'Donor report':q.type==='chat_money'?'Chat flag':'Request flag'}</span>
+        <span class="text-[10px] text-gray-400">${timeAgo(q.ts)}</span>
+      </div>
+      <div class="text-[12.5px] font-medium mt-2">${q.reason}</div>
+      <div class="text-[11px] text-gray-500 mt-0.5">Ref: ${q.refId||'—'}</div>
+      <div class="grid grid-cols-2 gap-2 mt-3">
+        <button onclick="reviewAction(${i},'clear')" class="py-2 rounded-xl font-bold text-[12px] bg-green-600 text-white">Clear</button>
+        <button onclick="reviewAction(${i},'suspend')" class="py-2 rounded-xl font-bold text-[12px] bg-gray-800 text-white">Suspend</button>
+      </div>
+    </div>`;
+  }).join('') || `<div class="card p-6 text-center text-gray-500 text-[12.5px]">No items pending review. Safety systems running.</div>`;
+
+  wrap.innerHTML = `
+    <!-- Contact masking -->
+    <div class="card p-4">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-xl bg-red-soft flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b3001b" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+        <h2 class="font-display font-bold text-[15px]">Contact masking</h2>
+      </div>
+      <p class="text-[12.5px] text-gray-600">Phone numbers are never shown. All conversations happen inside Blood Network's in-platform chat. Donors and requesters cannot see each other's contact details until the donation is coordinated at a verified blood bank.</p>
+      <div class="grid grid-cols-2 gap-2 mt-3">
+        <div class="bg-gray-50 rounded-xl p-2.5 text-center">
+          <div class="badge-mask mx-auto">📱 +91•••••••934</div>
+          <div class="text-[10px] text-gray-500 mt-1">Masked</div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-2.5 text-center">
+          <div class="text-[12px] font-semibold text-gray-700">💬 In-platform</div>
+          <div class="text-[10px] text-gray-500 mt-1">Always available</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fraud checks -->
+    <div class="card p-4 mt-3">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-xl bg-red-soft flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b3001b" stroke-width="2.2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>
+        <h2 class="font-display font-bold text-[15px]">Automated fraud checks</h2>
+      </div>
+      <ul class="space-y-2 text-[12.5px] text-gray-700">
+        <li class="flex gap-2"><span class="text-red">•</span> <div><b>Duplicate requests</b> with the same blood group + hospital + area within 6 hours are held for review.</div></li>
+        <li class="flex gap-2"><span class="text-red">•</span> <div><b>Money mentions</b> (₹, rupees, payment, UPI, fee, amount, salary, transfer) in patient fields or chats are auto-flagged.</div></li>
+        <li class="flex gap-2"><span class="text-red">•</span> <div><b>Report button</b> on every donor card & chat — flag "asked for money / fake" for admin review.</div></li>
+        <li class="flex gap-2"><span class="text-red">•</span> <div><b>Verified badge</b> only after ID check at an authorized blood bank.</div></li>
+      </ul>
+    </div>
+
+    <!-- Admin review queue -->
+    <div class="mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-display font-bold text-[14px]">Admin review queue</h3>
+        <span class="text-[11px] text-gray-500">${queue.length} item${queue.length!==1?'s':''}</span>
+      </div>
+      <div class="space-y-2.5">${queueCards}</div>
+    </div>
+
+    <!-- Reset -->
+    <button onclick="resetApp()" class="w-full mt-5 py-3 text-[12px] text-gray-400 font-medium">Reset all demo data</button>
+  `;
+}
+function reviewAction(idx, action){
+  const q = state.reviewQueue[idx]; if(!q) return;
+  state.reviewQueue.splice(idx,1);
+  if(action==='suspend'){
+    if(q.type==='donor_report'){
+      const d = state.donors.find(x=>x.id===q.refId);
+      if(d) d.available = false;
+    } else if(q.type==='request' || q.type==='chat_money'){
+      const r = state.requests.find(x=>x.id===q.refId);
+      if(r){ r.status='suspended'; if(state.activeRequestId===r.id) state.activeRequestId=null; }
+    }
+    toast('Item suspended');
+  } else {
+    if(q.type==='request'){
+      const r = state.requests.find(x=>x.id===q.refId);
+      if(r && r.status==='review'){
+        r.status='searching';
+        r.timeline.push({ts:Date.now(),label:'Cleared by admin — broadcast resumed',type:'start'});
+        state.activeRequestId = r.id;
+      }
+    }
+    toast('Cleared ✓');
+  }
+  saveState(state);
+  renderSafety();
+}
+function resetApp(){
+  localStorage.removeItem(STORE_KEY);
+  state = loadState();
+  toast('Demo data reset');
+  goTab('home');
+}
+
+/* ---------- Init ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  goTab('home');
+});
+// run immediately too
+goTab('home');
+</script>
+
+<script>
+(function() {
+    function triggerReveals() {
+        document.querySelectorAll('.reveal').forEach(function(el) {
+            var rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+                el.classList.add('in', 'is-visible');
+            }
+        });
+    }
+    // Trigger on load and after a short delay to catch timing issues
+    if (document.readyState === 'complete') {
+        triggerReveals();
+        setTimeout(triggerReveals, 100);
+    } else {
+        window.addEventListener('load', function() {
+            triggerReveals();
+            setTimeout(triggerReveals, 100);
+        });
+    }
+})();
+</script>
+<script data-recording-tracker="true">
+(function() {
+  var meta = {"generationId":"ce3b668d-1ffe-4be5-8cce-14d09a4ae6aa","tournamentId":"1e417982-a708-4aa8-8623-5bda32e26428"};
+  var startTime = Date.now();
+  var interactions = [];
+  var cursorPath = [];
+  var lastCursorSample = 0;
+  var lastScrollSample = 0;
+  var pageHeight = document.documentElement.scrollHeight;
+  var viewport = { width: window.innerWidth, height: window.innerHeight };
+
+  var MAX_RECORDING_MS = 600000;
+  var MAX_INTERACTIONS = 5000;
+  var MAX_CURSOR_POINTS = 10000;
+  var recordingStopped = false;
+
+  function isCapped() {
+    if (recordingStopped) return true;
+    if (Date.now() - startTime >= MAX_RECORDING_MS) { recordingStopped = true; return true; }
+    return false;
+  }
+
+  try {
+    fetch('/api/page-views', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tournamentId: meta.tournamentId, modelId: meta.generationId }),
+      keepalive: true
+    });
+  } catch (ex) {}
+
+  window.addEventListener('resize', function() {
+    viewport = { width: window.innerWidth, height: window.innerHeight };
+    pageHeight = document.documentElement.scrollHeight;
+  });
+
+  document.addEventListener('click', function(e) {
+    if (isCapped() || interactions.length >= MAX_INTERACTIONS) return;
+    var el = e.target;
+    var tag = el.tagName ? el.tagName.toLowerCase() : '';
+    var text = (el.textContent || '').trim().substring(0, 80);
+    var classes = el.className && typeof el.className === 'string' ? el.className.substring(0, 120) : '';
+    interactions.push({
+      type: 'click',
+      t: Date.now() - startTime,
+      x: Math.round(e.clientX),
+      y: Math.round(e.clientY),
+      element: { tag: tag, text: text, classes: classes }
+    });
+  }, true);
+
+  window.addEventListener('scroll', function() {
+    if (isCapped() || interactions.length >= MAX_INTERACTIONS) return;
+    var now = Date.now();
+    if (now - lastScrollSample < 200) return;
+    lastScrollSample = now;
+    var scrollY = Math.round(window.scrollY || window.pageYOffset || 0);
+    var depthPct = pageHeight > viewport.height
+      ? Math.min(100, Math.round(((scrollY + viewport.height) / pageHeight) * 100))
+      : 100;
+    interactions.push({
+      type: 'scroll',
+      t: now - startTime,
+      y: scrollY,
+      depth_pct: depthPct
+    });
+  }, { passive: true });
+
+  document.addEventListener('mousemove', function(e) {
+    if (isCapped() || cursorPath.length >= MAX_CURSOR_POINTS) return;
+    var now = Date.now();
+    if (now - lastCursorSample < 250) return;
+    lastCursorSample = now;
+    cursorPath.push([Math.round(e.clientX), Math.round(e.clientY), now - startTime]);
+  }, { passive: true });
+
+  document.addEventListener('keydown', function(e) {
+    if (isCapped() || interactions.length >= MAX_INTERACTIONS) return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    interactions.push({
+      type: 'keydown',
+      t: Date.now() - startTime,
+      key: e.key
+    });
+  }, true);
+
+  window.__getInteractionData = function() {
+    var ph = document.documentElement.scrollHeight;
+    var maxScroll = 0;
+    var clickElements = {};
+    var firstClick = null;
+    var firstScroll = null;
+    var totalDistance = 0;
+
+    for (var i = 0; i < interactions.length; i++) {
+      var ev = interactions[i];
+      if (ev.type === 'scroll') {
+        if (ev.depth_pct > maxScroll) maxScroll = ev.depth_pct;
+        if (!firstScroll) firstScroll = ev.t;
+      }
+      if (ev.type === 'click') {
+        if (!firstClick) firstClick = ev.t;
+        var key = ev.element.tag + ':' + ev.element.text.substring(0, 30);
+        clickElements[key] = true;
+      }
+    }
+
+    for (var j = 1; j < cursorPath.length; j++) {
+      var dx = cursorPath[j][0] - cursorPath[j-1][0];
+      var dy = cursorPath[j][1] - cursorPath[j-1][1];
+      totalDistance += Math.sqrt(dx*dx + dy*dy);
+    }
+
+    var duration = Date.now() - startTime;
+    var clickHeatmap = [];
+    for (var k = 0; k < interactions.length; k++) {
+      if (interactions[k].type === 'click') {
+        clickHeatmap.push([interactions[k].x, interactions[k].y]);
+      }
+    }
+
+    return {
+      generation_id: meta.generationId,
+      tournament_id: meta.tournamentId,
+      started_at: new Date(startTime).toISOString(),
+      ended_at: new Date().toISOString(),
+      duration_ms: duration,
+      viewport: viewport,
+      page_height: ph,
+      interactions: interactions,
+      cursor_path: cursorPath,
+      click_heatmap: clickHeatmap,
+      summary: {
+        total_clicks: clickHeatmap.length,
+        total_scrolls: interactions.filter(function(e) { return e.type === 'scroll'; }).length,
+        max_scroll_depth_pct: maxScroll,
+        unique_elements_clicked: Object.keys(clickElements).length,
+        time_to_first_click_ms: firstClick,
+        time_to_first_scroll_ms: firstScroll,
+        cursor_distance_px: Math.round(totalDistance),
+        active_time_ms: duration
+      }
+    };
+  };
+})();
+</script>
+
+</body></html>
