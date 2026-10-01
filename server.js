@@ -137,7 +137,7 @@ function withMatches(r) {
 }
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript' };
-const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.js': 'app.js' }; // only the UI files are public
+const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.js': 'app.js', '/landing': 'landing.html', '/landing.html': 'landing.html' }; // only the UI files are public
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   try {
