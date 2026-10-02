@@ -1,6 +1,6 @@
 # Blood Network 🩸
 
-**Need blood? Find a verified nearby donor.**
+**Need blood? Find a nearby donor.**
 Team Amarjith - Pixels to Products (HackIndia x Cloudinary AI Hackathon 2026)
 
 ## Track
@@ -16,7 +16,7 @@ Blood Network is a public-first, real-time emergency blood matching platform. It
 2. The system finds compatible, eligible donors nearby and ranks them (blood-group compatibility, distance, verification, last-donation gap, urgency radius).
 3. The best matches get an instant alert.
 4. Live status: Searching, Donor Found, Contacted, Donation Coordinated, Completed.
-5. The donation itself always happens at an authorized, licensed blood-collection facility. No blood is exchanged privately. Hospitals and blood banks are verified secondary users.
+5. The donation itself always happens at an authorized, licensed blood-collection facility. No blood is exchanged privately. Hospitals and blood banks are the intended secondary users.
 
 ### Safety and trust features
 - **Escalation engine:** if no donor accepts within 10 minutes (set `ESCALATION_MS` to change), the search radius doubles, more donors are alerted and nearby blood banks are notified. Timeline shown on the request. The "Simulate 10 min" button triggers it instantly for demos.
@@ -58,7 +58,7 @@ Manual demo (2 minutes):
 2. See the Cloudinary-generated emergency card, ranked matched donors, and "donors alerted".
 3. Tab **Donor alerts**: pick an alerted donor (for example Lakshmi) to see the notification.
 3b. Tick **Platelets** or **Plasma** in the Need dropdown to see different matching. Press **Simulate 10 min with no reply** on a request to see the radius widen and blood banks get alerted. Submit the same request twice to see the duplicate flag.
-4. Tab **Donate**: register a donor with an ID photo, which gets a verified badge (face blurred in the public view).
+4. Tab **Donate**: register a donor with an ID photo (stored as a private Cloudinary asset; the public view shows only a face-blurred thumbnail and the label 'ID uploaded (not verified)' - no identity check is performed).
 5. Tab **Requests**: move the request through Contacted, Donation Coordinated and Completed.
 
 ## Deploy

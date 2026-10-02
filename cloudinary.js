@@ -14,7 +14,7 @@ function sign(params) {
 async function upload(dataUri, folder, extra = {}) {
   if (!LIVE) return { demo: true, public_id: null, secure_url: dataUri };
   const timestamp = Math.floor(Date.now() / 1000);
-  const params = { folder, timestamp, ...extra };
+  const params = { folder, timestamp, type: 'authenticated', ...extra }; // private: originals are not publicly fetchable
   const form = new FormData();
   form.append('file', dataUri);
   form.append('api_key', KEY);
@@ -48,6 +48,9 @@ function thumbUrl(publicId, { blurFaces = false } = {}) {
   if (!publicId) return null;
   const t = ['w_400,h_300,c_fill,q_auto,f_auto'];
   if (blurFaces) t.unshift('e_blur_faces:1200');
-  return `https://res.cloudinary.com/${CLOUD}/image/upload/${t.join('/')}/${publicId}`;
+  // Private (type=authenticated) asset: delivery URL carries a signature, the raw original has no public URL.
+  const path = `${t.join('/')}/${publicId}`;
+  const sig = crypto.createHash('sha1').update(path + SECRET).digest('base64').replace(/\+/g, '-').replace(/\//g, '_').slice(0, 8);
+  return `https://res.cloudinary.com/${CLOUD}/image/authenticated/s--${sig}--/${path}`;
 }
 module.exports = { CLOUD, LIVE, upload, requestCardUrl, thumbUrl };
