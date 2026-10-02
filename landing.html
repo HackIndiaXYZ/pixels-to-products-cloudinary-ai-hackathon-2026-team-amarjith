@@ -99,17 +99,17 @@
           <span class="w-1.5 h-1.5 bg-red rounded-full animate-pulse"></span>Emergency donor matching
         </div>
         <h1 class="font-display text-[26px] font-extrabold leading-[1.1] mb-2">
-          Need blood? Find a <span class="text-red">verified</span> nearby donor.
+          Need blood? Find a <span class="text-red">nearby</span> donor.
         </h1>
         <p class="text-[13px] text-gray-600 leading-relaxed mb-4">
-          Blood Network connects you with verified donors across Hyderabad in minutes. Every donation happens at an authorized blood bank.
+          Blood Network connects you with nearby donors across Hyderabad in minutes. Every donation happens at an authorized blood bank.
         </p>
         <button onclick="goTab('sos')" class="pulse-ring btn-red w-full h-14 rounded-2xl font-display font-bold text-[16px] flex items-center justify-center gap-2 urgent-glow">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 6.5L21 9l-5 4.3L17.5 21 12 17l-5.5 4 1.5-7.7L3 9l6.6-.5L12 2z" fill="white"></path></svg>
           Send emergency SOS
         </button>
         <div class="flex items-center justify-center gap-4 mt-3 text-[11px] text-gray-500">
-          <span class="flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"></path></svg>Verified donors</span>
+          <span class="flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"></path></svg>Donors</span>
           
         </div>
       </div>
@@ -117,7 +117,7 @@
 
     <!-- Stats strip -->
     <div class="grid grid-cols-3 gap-2 mt-4">
-      <div class="card p-3 text-center"><div class="font-display font-extrabold text-red text-[18px]" id="stat-donors">12</div><div class="text-[10px] text-gray-500 mt-0.5">Verified donors</div></div>
+      <div class="card p-3 text-center"><div class="font-display font-extrabold text-red text-[18px]" id="stat-donors">12</div><div class="text-[10px] text-gray-500 mt-0.5">Donors</div></div>
       <div class="card p-3 text-center"><div class="font-display font-extrabold text-red text-[18px]" id="stat-areas">12</div><div class="text-[10px] text-gray-500 mt-0.5">Hyderabad areas</div></div>
       <div class="card p-3 text-center"><div class="font-display font-extrabold text-red text-[18px]">4</div><div class="text-[10px] text-gray-500 mt-0.5">Blood bank partners</div></div>
     </div>
@@ -134,7 +134,7 @@
       <div class="card p-3.5 flex gap-3 items-start">
         <div class="step-num">2</div>
         <div><div class="font-display font-bold text-[14px]">Smart ABO matching</div>
-          <p class="text-[12px] text-gray-600 mt-0.5">We rank verified, available donors by ABO compatibility, distance &amp; score.</p></div>
+          <p class="text-[12px] text-gray-600 mt-0.5">We rank available donors by ABO compatibility, distance &amp; score.</p></div>
       </div>
       <div class="card p-3.5 flex gap-3 items-start">
         <div class="step-num">3</div>
@@ -157,7 +157,7 @@
         <h3 class="font-display font-bold text-[15px]">Our Safety Promise</h3>
       </div>
       <ul class="space-y-2 text-[12.5px] text-gray-700">
-        <li class="flex gap-2"><span class="text-red">✓</span> Every donor is identity-verified before activation.</li>
+        <li class="flex gap-2"><span class="text-red">✓</span> Donors upload an ID photo; blood banks check ID at donation.</li>
         <li class="flex gap-2"><span class="text-red">✓</span> Phone numbers are masked — all chats happen in-platform.</li>
         <li class="flex gap-2"><span class="text-red">✓</span> Requests mentioning money or duplicates are held for review.</li>
         <li class="flex gap-2"><span class="text-red">✓</span> Donations happen only at authorized blood banks — never private homes.</li>
@@ -799,7 +799,7 @@ function renderDonorRegister(){
         <div class="w-8 h-8 rounded-xl bg-red-soft flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b3001b" stroke-width="2.2"><circle cx="12" cy="7" r="4"/><path d="M16 11a4 4 0 10-8 0M12 14v6m-3-3h6"/></svg></div>
         <div>
           <h2 class="font-display font-bold text-[16px]">Become a donor</h2>
-          <p class="text-[11px] text-gray-500">Join Hyderabad's verified donor network. Save lives near you.</p>
+          <p class="text-[11px] text-gray-500">Join Hyderabad's donor network. Save lives near you.</p>
         </div>
       </div>
       <div class="space-y-3 mt-4">
@@ -822,7 +822,7 @@ function renderDonorRegister(){
           </div>
         </div>
         <div class="bg-red-soft rounded-xl p-3 text-[11.5px] text-gray-700 border border-red-border">
-          <b class="text-red">Verification:</b> A Blood Network volunteer will verify your ID at a partner blood bank before your profile becomes active. Until then, you'll appear as unverified.
+          <b class="text-red">Verification:</b> A Blood Network volunteer will verify your ID at a partner blood bank before your profile becomes active. 
         </div>
         <button id="r-submit" onclick="registerDonor()" class="btn-red w-full py-3.5 rounded-2xl font-display font-bold text-[14px]">Register as donor</button>
       </div>
@@ -1015,7 +1015,7 @@ function renderSafety(){
         <li class="flex gap-2"><span class="text-red">•</span> <div><b>Duplicate requests</b> with the same blood group + hospital + area within 6 hours are held for review.</div></li>
         <li class="flex gap-2"><span class="text-red">•</span> <div><b>Money mentions</b> (₹, rupees, payment, UPI, fee, amount, salary, transfer) in patient fields or chats are auto-flagged.</div></li>
         <li class="flex gap-2"><span class="text-red">•</span> <div><b>Report button</b> on every donor card & chat — flag "asked for money / fake" for admin review.</div></li>
-        <li class="flex gap-2"><span class="text-red">•</span> <div><b>Verified badge</b> only after ID check at an authorized blood bank.</div></li>
+        <li class="flex gap-2"><span class="text-red">•</span> <div><b>ID-uploaded badge</b> only after ID check at an authorized blood bank.</div></li>
       </ul>
     </div>
 
