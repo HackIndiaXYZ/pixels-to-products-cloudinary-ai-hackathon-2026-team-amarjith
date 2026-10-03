@@ -57,3 +57,70 @@ test('fraud: duplicate requests and money demands are flagged', () => {
   assert.ok(lib.fraudFlags({ ...dup, phone: '1', note: 'send Rs 5000 on paytm first' }, [], now).some((f) => /money/.test(f)));
   assert.deepStrictEqual(lib.fraudFlags({ ...dup, phone: '2', patient: 'Zed' }, old, now), []);
 });
+const vm = require('node:vm');
+const fs = require('node:fs');
+
+function ui() {
+  const elements = new Map();
+  const el = (id) => {
+    if (!elements.has(id)) elements.set(id, { value: '', innerHTML: '', classList: { toggle() {} } });
+    return elements.get(id);
+  };
+  const sandbox = {
+    document: { getElementById: el, querySelectorAll: () => [] },
+    location: { hash: '' }, URL, FileReader: class {},
+    fetch: async () => ({ ok: true, json: async () => ({ groups: [], areas: [], components: [] }) }),
+  };
+  vm.createContext(sandbox);
+  const source = fs.readFileSync(require.resolve('./app.js'), 'utf8').replace(/init\(\)\.then\([\s\S]*$/, '');
+  vm.runInContext(source + '\nthis.ui = { escapeHtml, safeImageUrl, donorCard, reqCard, loadAlerts, setConfig(c) { cfg = c; } };', sandbox);
+  sandbox.ui.setConfig({ statuses: ['Searching'], escalationMinutes: 10 });
+  return { ...sandbox.ui, sandbox, el };
+}
+const attack = '<img src=x onerror="alert(1)">';
+const donor = () => ({ id: 'D-100', name: attack, bloodGroup: 'B+', area: 'Gachibowli', idUploaded: false });
+const request = () => ({
+  id: 'R-100', component: 'Whole blood', bloodGroup: 'B+', patient: attack,
+  area: 'Gachibowli', urgency: 'urgent', status: 'Searching', radiusKm: 15,
+  flags: [], bankAlerts: [attack], alerted: [], matches: [donor()],
+  cardUrl: 'https://res.cloudinary.com/demo/sample.jpg', timeline: [{ at: 0, text: attack }],
+  messages: [{ from: 'requester', text: attack }],
+});
+
+test('HTML encoding keeps markup and quote characters as visible text', () => {
+  const { escapeHtml } = ui();
+  assert.equal(escapeHtml('&<>"\''), '&amp;&lt;&gt;&quot;&#39;');
+  assert.equal(escapeHtml('Amar & O\'Brien'), 'Amar &amp; O&#39;Brien');
+  assert.equal(escapeHtml(null), '');
+});
+test('donor cards escape names and reject unsafe image URLs', () => {
+  const { donorCard } = ui();
+  const html = donorCard({ ...donor(), idUrl: 'javascript:alert(1)' });
+  assert.ok(!html.includes(attack));
+  assert.ok(html.includes('&lt;img'));
+  assert.ok(!html.includes('src="javascript:'));
+});
+test('request cards escape patient, timeline, chat, bank and review text', () => {
+  const { reqCard } = ui();
+  for (const r of [request(), { ...request(), status: 'Flagged', flags: [attack] }]) {
+    const html = reqCard(r);
+    assert.ok(!html.includes(attack));
+    assert.ok(html.includes('&lt;img'));
+    assert.ok(html.includes('src="https://res.cloudinary.com/'));
+  }
+});
+test('image URLs only allow HTTPS and encode attribute delimiters', () => {
+  const { safeImageUrl } = ui();
+  for (const url of ['javascript:alert(1)', 'data:text/html,hi', 'http://example.org/x', 'not a URL']) assert.equal(safeImageUrl(url), '');
+  assert.equal(safeImageUrl('https://example.org/x?a=1&b=2'), 'https://example.org/x?a=1&amp;b=2');
+});
+test('donor alerts render notification and chat text safely', async () => {
+  const { sandbox, el, loadAlerts } = ui();
+  el('i-donor').value = 'D-100';
+  sandbox.fetch = async (url) => ({ ok: true, json: async () => url.includes('/alerts')
+    ? [{ requestId: 'R-100', text: attack, at: 0, accepted: true }]
+    : [{ ...request(), messages: [{ from: attack, text: attack, donorId: 'D-100' }] }] });
+  await loadAlerts();
+  assert.ok(!el('i-out').innerHTML.includes(attack));
+  assert.ok(el('i-out').innerHTML.includes('&lt;img'));
+});
