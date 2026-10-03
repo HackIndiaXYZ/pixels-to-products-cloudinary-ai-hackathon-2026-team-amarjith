@@ -1,9 +1,15 @@
 const $ = (id) => document.getElementById(id);
 let cfg;
+// Treat names, chat messages and timeline text as data, never as HTML.
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const safeImageUrl = (value) => {
+  try { const u = new URL(value); return u.protocol === 'https:' ? escapeHtml(u.href) : ''; }
+  catch { return ''; }
+};
 const api = (p, o) => fetch('/api' + p, o).then(async (r) => { const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Error'); return j; });
 const post = (p, b) => api(p, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
 const fileToUri = (f) => new Promise((ok) => { if (!f) return ok(null); const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(f); });
-const opts = (a) => a.map((x) => `<option>${x}</option>`).join('');
+const opts = (a) => a.map((x) => `<option>${escapeHtml(x)}</option>`).join('');
 
 async function init() {
   cfg = await api('/config');
@@ -19,13 +25,13 @@ function show(t) {
   document.querySelectorAll('section').forEach((s) => s.classList.toggle('on', s.id === t));
   if (t === 'list') loadRequests(); if (t === 'inbox') loadAlerts(); if (t === 'don') refreshDonors();
 }
-const donorCard = (d) => `<div class="card"><b>${d.name}</b> <span class="pill red">${d.bloodGroup}</span>${d.idUploaded ? '<span class="pill">ID uploaded (not verified)</span>' : '<span class="pill">no ID</span>'}
- <div class="note">${d.area}${d.km != null ? ' · ' + d.km + ' km away · match ' + d.score + '%' : ''} · 🔒 contact via platform${d.alerted ? ' · 🔔 alerted' : ''}${d.accepted ? ' · ✅ accepted' : ''}${d.cooldownDays ? ' · cooldown ' + d.cooldownDays + 'd' : ''}${d.flagged ? ' · ⚠ flagged' : ''}</div>
- ${d.idUrl ? `<img src="${d.idUrl}" width="120" alt="ID thumbnail">` : ''}</div>`;
+const donorCard = (d) => `<div class="card"><b>${escapeHtml(d.name)}</b> <span class="pill red">${escapeHtml(d.bloodGroup)}</span>${d.idUploaded ? '<span class="pill">ID uploaded (not verified)</span>' : '<span class="pill">no ID</span>'}
+ <div class="note">${escapeHtml(d.area)}${d.km != null ? ' · ' + d.km + ' km away · match ' + d.score + '%' : ''} · 🔒 contact via platform${d.alerted ? ' · 🔔 alerted' : ''}${d.accepted ? ' · ✅ accepted' : ''}${d.cooldownDays ? ' · cooldown ' + d.cooldownDays + 'd' : ''}${d.flagged ? ' · ⚠ flagged' : ''}</div>
+ ${d.idUrl ? `<img src="${safeImageUrl(d.idUrl)}" width="120" alt="ID thumbnail">` : ''}</div>`;
 async function refreshDonors() {
   const ds = await api('/donors');
   $('d-list').innerHTML = ds.slice().reverse().map(donorCard).join('');
-  $('i-donor').innerHTML = ds.map((d) => `<option value="${d.id}">${d.name} (${d.bloodGroup}, ${d.area})</option>`).join('');
+  $('i-donor').innerHTML = ds.map((d) => `<option value="${d.id}">${escapeHtml(d.name)} (${escapeHtml(d.bloodGroup)}, ${escapeHtml(d.area)})</option>`).join('');
 }
 $('d-go').onclick = async () => {
   $('d-err').textContent = '';
@@ -47,16 +53,16 @@ $('r-go').onclick = async () => {
 function reqCard(r) {
   const i = cfg.statuses.indexOf(r.status), flagged = r.status === 'Flagged';
   const acc = r.matches.filter((m) => m.accepted);
-  return `<div class="card"><b>${r.component} ${r.bloodGroup}</b> for ${r.patient} · ${r.area} <span class="pill red">${r.urgency}</span> <span class="note">${r.id}</span>
-  ${flagged ? `<div class="warn bad">⚠ Held for review - no alerts sent. ${r.flags.join('; ') || 'Reported by users.'}<br><button class="btn sm o" onclick="act('${r.id}','clear')">Reviewer: clear request</button></div>`
-    : `<div class="steps">${cfg.statuses.map((_, k) => `<i class="${k <= i ? 'd' : ''}"></i>`).join('')}</div><b>${r.status}</b> · ${r.alerted.length} donors alerted · search radius ${r.radiusKm} km${r.stage ? ' (escalated x' + r.stage + ')' : ''}`}
-  ${r.bankAlerts.length ? `<div class="warn">🏥 Blood banks alerted: ${r.bankAlerts.join(', ')}</div>` : ''}
-  <img class="cardimg" src="${r.cardUrl}" alt="Emergency request card (Cloudinary)">
+  return `<div class="card"><b>${escapeHtml(r.component)} ${escapeHtml(r.bloodGroup)}</b> for ${escapeHtml(r.patient)} · ${escapeHtml(r.area)} <span class="pill red">${escapeHtml(r.urgency)}</span> <span class="note">${r.id}</span>
+  ${flagged ? `<div class="warn bad">⚠ Held for review - no alerts sent. ${r.flags.map(escapeHtml).join('; ') || 'Reported by users.'}<br><button class="btn sm o" onclick="act('${r.id}','clear')">Reviewer: clear request</button></div>`
+    : `<div class="steps">${cfg.statuses.map((_, k) => `<i class="${k <= i ? 'd' : ''}"></i>`).join('')}</div><b>${escapeHtml(r.status)}</b> · ${r.alerted.length} donors alerted · search radius ${r.radiusKm} km${r.stage ? ' (escalated x' + r.stage + ')' : ''}`}
+  ${r.bankAlerts.length ? `<div class="warn">🏥 Blood banks alerted: ${r.bankAlerts.map(escapeHtml).join(', ')}</div>` : ''}
+  <img class="cardimg" src="${safeImageUrl(r.cardUrl)}" alt="Emergency request card (Cloudinary)">
   <div class="note">Shareable emergency card generated by Cloudinary - long-press to save and forward on WhatsApp.</div>
   ${r.hasReport ? '<p class="note">📎 Medical report attached (stored privately, not shown publicly)</p>' : ''}
-  <div class="tl">${r.timeline.map((t) => '• ' + new Date(t.at).toLocaleTimeString() + ' ' + t.text).join('<br>')}</div>
-  ${r.messages.length ? '<h4>Platform chat (numbers hidden)</h4>' + r.messages.map((m) => `<div class="msg"><b>${m.from}</b>: ${m.text}${m.warn ? ' <span class="pill red">⚠ money mentioned - donation is never paid</span>' : ''}</div>`).join('') : ''}
-  ${acc.map((m) => `<div class="row"><input id="m-${r.id}-${m.id}" placeholder="Message ${m.name} (relay)"><button class="btn sm" onclick="sendMsg('${r.id}','${m.id}','requester')">Send</button></div>`).join('')}
+  <div class="tl">${r.timeline.map((t) => '• ' + new Date(t.at).toLocaleTimeString() + ' ' + escapeHtml(t.text)).join('<br>')}</div>
+  ${r.messages.length ? '<h4>Platform chat (numbers hidden)</h4>' + r.messages.map((m) => `<div class="msg"><b>${escapeHtml(m.from)}</b>: ${escapeHtml(m.text)}${m.warn ? ' <span class="pill red">⚠ money mentioned - donation is never paid</span>' : ''}</div>`).join('') : ''}
+  ${acc.map((m) => `<div class="row"><input id="m-${r.id}-${m.id}" placeholder="Message ${escapeHtml(m.name)} (relay)"><button class="btn sm" onclick="sendMsg('${r.id}','${m.id}','requester')">Send</button></div>`).join('')}
   <h4>Matched donors (best first)</h4>${r.matches.length ? r.matches.map(donorCard).join('') : '<p class="note">No eligible compatible donor in range yet - escalation will widen the search and alert blood banks.</p>'}
   ${flagged ? '' : `<div>${cfg.statuses.slice(2).map((s) => `<button class="btn sm" onclick="setStatus('${r.id}','${s}')">${s}</button>`).join('')}
   <button class="btn sm o" onclick="act('${r.id}','escalate')">⏩ Simulate ${cfg.escalationMinutes} min with no reply</button></div>`}
@@ -74,10 +80,10 @@ async function loadAlerts() {
   const id = $('i-donor').value; if (!id) return;
   const [a, rs] = await Promise.all([api('/alerts?donor=' + id), api('/requests')]);
   $('i-out').innerHTML = a.length ? a.map((x) => { const r = rs.find((q) => q.id === x.requestId); const msgs = r ? r.messages.filter((m) => !m.donorId || m.donorId === id) : [];
-    return `<div class="card">🔔 ${x.text}<div class="note">${new Date(x.at).toLocaleString()} · ${x.requestId} · requester contact hidden</div>
+    return `<div class="card">🔔 ${escapeHtml(x.text)}<div class="note">${new Date(x.at).toLocaleString()} · ${escapeHtml(x.requestId)} · requester contact hidden</div>
     ${x.accepted ? '<span class="pill ok">✅ You accepted</span>' : x.status === 'Flagged' ? '<span class="pill">held for review</span>' : `<button class="btn sm g" onclick="accept('${x.requestId}','${id}')">I can donate</button>`}
-    ${msgs.map((m) => `<div class="msg"><b>${m.from}</b>: ${m.text}</div>`).join('')}
-    ${x.accepted ? `<div class="row"><input id="im-${x.requestId}" placeholder="Reply via platform"><button class="btn sm" onclick="sendMsg('${x.requestId}','${id}','donor')">Send</button></div>` : ''}
+    ${msgs.map((m) => `<div class="msg"><b>${escapeHtml(m.from)}</b>: ${escapeHtml(m.text)}</div>`).join('')}
+    ${x.accepted ? `<div class="row"><input id="im-${escapeHtml(x.requestId)}" placeholder="Reply via platform"><button class="btn sm" onclick="sendMsg('${x.requestId}','${id}','donor')">Send</button></div>` : ''}
     <button class="btn sm o" onclick="report('request','${x.requestId}')">🚩 Report</button></div>`; }).join('') : '<p class="note">No alerts for this donor yet.</p>';
 }
 async function accept(rid, did) { await post(`/requests/${rid}/accept`, { donorId: did }); loadAlerts(); }
