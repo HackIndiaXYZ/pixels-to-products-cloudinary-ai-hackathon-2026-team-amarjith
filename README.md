@@ -3,6 +3,12 @@
 **Need blood? Find a nearby donor.**
 Team Amarjith - Pixels to Products (HackIndia x Cloudinary AI Hackathon 2026)
 
+## Live demo
+
+Live demo: https://blood-network-amar.onrender.com
+
+The demo runs on Render's free tier and may take a moment to wake after inactivity. If the first load is slow, wait briefly and try again.
+
 ## Track
 Pixels to Products: turning images (reports, IDs, auto-generated cards) into a working real-world product, with Cloudinary doing the image work.
 
