@@ -25,7 +25,7 @@ Blood Network is a public-first, real-time emergency blood matching platform. It
 5. The donation itself always happens at an authorized, licensed blood-collection facility. No blood is exchanged privately. Hospitals and blood banks are the intended secondary users.
 
 ### Safety and trust features
-- **Escalation engine:** if no donor accepts within 10 minutes (set `ESCALATION_MS` to change), the search radius doubles, more donors are alerted and nearby blood banks are notified. Timeline shown on the request. The "Simulate 10 min" button triggers it instantly for demos.
+- **Escalation engine:** if no donor accepts within 10 minutes (set `ESCALATION_MS` to change), the search radius doubles, more donors get in-app alerts and nearby blood-bank alerts are simulated (recorded in the timeline only; no real message is sent). Timeline shown on the request. The "Simulate 10 min" button triggers it instantly for demos.
 - **Donation cooldown:** whole blood 90 days, plasma 28 days, platelets 14 days. Donors in cooldown are never matched; donating via the app starts the cooldown.
 - **Contact masking:** nobody's phone number is shown or sent to the browser. Requester and donor talk through a platform relay chat after the donor accepts.
 - **Fraud checks:** duplicate requests (same patient, group, area, number within 6 hours), 3+ requests from one number, and any mention of money or payment are held for review with no alerts sent. Messages that mention money get a warning. Two user reports ("asked me for money / fake") flag a request or donor and remove them from matching.
@@ -63,7 +63,7 @@ Manual demo (2 minutes):
 1. Open the app, tab **Need blood**: patient "Rahul", B+, 2 units, Gachibowli, Critical, any 10-digit number, then **Send emergency SOS**.
 2. See the Cloudinary-generated emergency card, ranked matched donors, and "donors alerted".
 3. Tab **Donor alerts**: pick an alerted donor (for example Lakshmi) to see the notification.
-3b. Tick **Platelets** or **Plasma** in the Need dropdown to see different matching. Press **Simulate 10 min with no reply** on a request to see the radius widen and blood banks get alerted. Submit the same request twice to see the duplicate flag.
+3b. Tick **Platelets** or **Plasma** in the Need dropdown to see different matching. Press **Simulate 10 min with no reply** on a request to see the radius widen and simulated blood-bank alerts appear in the timeline. Submit the same request twice to see the duplicate flag.
 4. Tab **Donate**: register a donor with an ID photo (stored as a private Cloudinary asset; the public view shows only a face-blurred thumbnail and the label 'ID uploaded (not verified)' - no identity check is performed).
 5. Tab **Requests**: move the request through Contacted, Donation Coordinated and Completed.
 
