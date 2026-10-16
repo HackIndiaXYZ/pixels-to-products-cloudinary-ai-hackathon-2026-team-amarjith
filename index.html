@@ -1,47 +1,434 @@
-<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Blood Network - Find a nearby blood donor</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Blood Network — Need blood? Find a nearby donor.</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#b3001b',primaryDark:'#7a0013',primaryLight:'#FFF0F1',primaryMid:'#e11d2e'},fontFamily:{sans:['Plus Jakarta Sans','Inter','system-ui','sans-serif']},boxShadow:{card:'0 8px 30px rgba(179,0,27,0.08)',pop:'0 20px 60px rgba(0,0,0,0.18)',red:'0 10px 30px rgba(179,0,27,0.28)'}}}}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--red:#b3001b;--bg:#fff7f7;--ink:#222}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--ink)}
-header{background:var(--red);color:#fff;padding:16px}header h1{margin:0;font-size:22px}header p{margin:4px 0 0;font-size:14px;opacity:.9}
-nav{display:flex;position:sticky;top:0;background:#fff;box-shadow:0 1px 4px #0003;z-index:5}
-nav button{flex:1;padding:12px 4px;border:0;background:none;font-size:14px;border-bottom:3px solid transparent}
-nav button.on{color:var(--red);border-color:var(--red);font-weight:600}
-main{padding:14px;max-width:720px;margin:auto}section{display:none}section.on{display:block}
-label{display:block;margin:10px 0 3px;font-size:13px;font-weight:600}
-input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:16px}
-.btn{margin-top:14px;width:100%;padding:13px;border:0;border-radius:10px;background:var(--red);color:#fff;font-size:16px;font-weight:600}
-.btn.sm{width:auto;padding:6px 10px;font-size:12px;margin:2px}.btn.g{background:#2e7d32}
-.card{background:#fff;border-radius:12px;padding:12px;margin:12px 0;box-shadow:0 1px 4px #0002}
-.row{display:flex;gap:8px}.row>*{flex:1}
-.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;background:#eee;margin-right:4px}
-.pill.red{background:var(--red);color:#fff}.pill.ok{background:#c8e6c9}
-.steps{display:flex;gap:2px;margin:8px 0}.steps i{flex:1;height:6px;border-radius:3px;background:#ddd}.steps i.d{background:#2e7d32}
-img.cardimg{width:100%;border-radius:8px}.note{font-size:12px;color:#666}.err{color:#b00020;font-size:14px}.warn{background:#fff3cd;border-left:4px solid #f0ad00;padding:8px;border-radius:6px;margin:8px 0;font-size:13px}.bad{background:#fde0e0;border-left-color:#b00020}.tl{font-size:12px;color:#444;margin:6px 0;padding-left:16px}.msg{font-size:13px;margin:4px 0}.msg b{color:var(--red)}.btn.o{background:#fff;color:var(--red);border:1px solid var(--red)}
-</style></head><body>
-<header><h1>🩸 Blood Network</h1><p>Need blood? Find a nearby donor - fast.</p></header>
-<nav id="nav"><button data-t="req" class="on">🚨 Need blood</button><button data-t="don">➕ Donate</button><button data-t="list">📊 Requests</button><button data-t="inbox">🔔 Donor alerts</button></nav>
-<main>
-<section id="req" class="on"><div class="card">
-<label>Patient name</label><input id="r-patient" placeholder="e.g. Rahul">
-<div class="row"><div><label>Blood group needed</label><select id="r-group"></select></div><div><label>Need</label><select id="r-comp"></select></div><div><label>Units</label><input id="r-units" type="number" min="1" value="1"></div></div>
-<div class="row"><div><label>Area (Hyderabad)</label><select id="r-area"></select></div><div><label>Urgency</label><select id="r-urg"><option value="critical">Critical (now)</option><option value="urgent" selected>Urgent (today)</option><option value="normal">Normal</option></select></div></div>
-<label>Contact number</label><input id="r-phone" inputmode="numeric" maxlength="10" placeholder="10 digit mobile">
-<label>Hospital / blood bank (optional)</label><input id="r-hosp" placeholder="Where donation will happen"><label>Note for donors (optional)</label><input id="r-note" placeholder="e.g. ward, doctor, timing">
-<label>Medical report / doctor's slip photo (optional, stored on Cloudinary)</label><input id="r-file" type="file" accept="image/*">
-<button class="btn" id="r-go">Send emergency SOS</button><p class="err" id="r-err"></p>
-<p class="note">Donation always happens at an authorized, licensed blood-collection facility. Blood Network only connects people faster - no blood is exchanged privately.</p></div>
-<div id="r-out"></div></section>
-<section id="don"><div class="card">
-<label>Name</label><input id="d-name"><label>Mobile</label><input id="d-phone" inputmode="numeric" maxlength="10">
-<div class="row"><div><label>Blood group</label><select id="d-group"></select></div><div><label>Area</label><select id="d-area"></select></div></div>
-<label>Last donation date (leave empty if never)</label><input id="d-last" type="date">
-<label>Government ID photo for verification (Cloudinary, faces blurred in public view)</label><input id="d-file" type="file" accept="image/*">
-<button class="btn g" id="d-go">Register as donor</button><p class="err" id="d-err"></p><div id="d-out"></div></div>
-<h3>Registered donors</h3><div id="d-list"></div></section>
-<section id="list"><div id="l-out"></div></section>
-<section id="inbox"><div class="card"><label>Pick a donor to see their alerts</label><select id="i-donor"></select></div><div id="i-out"></div></section>
+*{ -webkit-tap-highlight-color:transparent }
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',Inter,system-ui,sans-serif;background:#FFF5F5;color:#1a1a1a}
+::-webkit-scrollbar{width:0;height:0}
+.scroll-thin::-webkit-scrollbar{height:6px;width:6px}
+.scroll-thin::-webkit-scrollbar-thumb{background:#f0c2c7;border-radius:99px}
+.tab-panel{animation:fadeSlide .38s cubic-bezier(.22,.9,.35,1)}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.pulse-ring{animation:pulseRing 2.2s infinite}
+@keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(179,0,27,.45)}70%{box-shadow:0 0 0 20px rgba(179,0,27,0)}100%{box-shadow:0 0 0 0 rgba(179,0,27,0)}}
+.pulse-dot{animation:pdot 1.6s infinite}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+.drop-float{animation:dropFloat 3.4s ease-in-out infinite}
+@keyframes dropFloat{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-9px) rotate(6deg)}}
+.hero-dots{background-image:radial-gradient(rgba(255,255,255,.22) 1.5px, transparent 1.5px);background-size:18px 18px}
+.card-dots{background-image:radial-gradient(rgba(179,0,27,.08) 1.5px, transparent 1.5px);background-size:16px 16px}
+.switch{width:56px;height:32px;background:#e5e7eb;border-radius:99px;position:relative;cursor:pointer;transition:.3s;flex-shrink:0}
+.switch.on{background:#16a34a}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:26px;height:26px;background:#fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.2);transition:.3s}
+.switch.on::after{left:27px}
+.timeline-item{position:relative;padding-left:38px}
+.timeline-item::before{content:'';position:absolute;left:14px;top:32px;bottom:-6px;width:2px;background:#f1d0d4;border-radius:99px}
+.timeline-item:last-child::before{display:none}
+.score-fill{transition:width 1.2s cubic-bezier(.22,.9,.3,1)}
+.step-line{height:3px;background:#f1d0d4;border-radius:99px;flex:1;margin:0 2px;margin-top:14px;overflow:hidden;position:relative}
+.step-line.fill{background:#b3001b}
+.toast-in{animation:toastIn .35s cubic-bezier(.22,.9,.35,1)}
+@keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-in{animation:modalIn .32s cubic-bezier(.22,.9,.35,1)}
+@keyframes modalIn{from{opacity:0;transform:translateY(30px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.blood-glow{text-shadow:0 8px 30px rgba(0,0,0,.25)}
+.shimmer{background:linear-gradient(110deg,#f8e8ea 8%,#fff 18%,#f8e8ea 33%);background-size:200% 100%;animation:sh 1.8s linear infinite}
+@keyframes sh{to{background-position-x:-200%}}
+input,select,textarea{outline:none}
+input:focus,select:focus,textarea:focus{border-color:#b3001b!important;box-shadow:0 0 0 3px rgba(179,0,27,.12)}
+.nav-active{color:#b3001b!important}
+.nav-active .nav-ic{background:#b3001b;color:#fff;box-shadow:0 6px 18px rgba(179,0,27,.35)}
+.chat-bubble-me{background:#b3001b;color:#fff;border-radius:18px 18px 4px 18px}
+.chat-bubble-them{background:#f3f4f6;color:#111;border-radius:18px 18px 18px 4px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23666' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+</style>
+</head>
+<body>
+
+<!-- Desktop ambient -->
+<div class="hidden lg:block fixed inset-0 pointer-events-none">
+<div class="absolute -top-20 -left-20 w-[500px] h-[500px] bg-red-200/40 blur-[120px] rounded-full"></div>
+<div class="absolute top-40 -right-20 w-[500px] h-[500px] bg-red-300/30 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-0 left-1/3 w-[600px] h-[300px] bg-orange-100/60 blur-[100px] rounded-full"></div>
+</div>
+<div class="hidden lg:flex fixed left-8 top-1/3 flex-col gap-4 max-w-[260px] pointer-events-none">
+<div class="bg-white/80 backdrop-blur rounded-3xl p-5 shadow-card border border-red-100"><div class="text-3xl font-extrabold text-primary" id="deskDonorCount">–</div><div class="text-sm font-semibold">Hyderabad donors</div><div class="text-xs text-gray-500 mt-1">ABO • Distance • Cooldown matching</div></div>
+<div class="bg-white/80 backdrop-blur rounded-3xl p-5 shadow-card border border-red-100"><div class="text-3xl font-extrabold text-primary" id="deskBankCount">4</div><div class="text-sm font-semibold">Authorized blood banks</div><div class="text-xs text-gray-500 mt-1">Bank-only donations</div></div>
+</div>
+<div class="hidden lg:flex fixed right-8 top-1/3 flex-col gap-4 max-w-[260px] pointer-events-none">
+<div class="bg-primary text-white rounded-3xl p-5 shadow-red"><div class="font-extrabold">Emergency SOS</div><div class="text-xs text-white/80 mt-1">Smart matching + WhatsApp share + live tracker</div></div>
+<div class="bg-white/80 backdrop-blur rounded-3xl p-5 shadow-card border border-red-100"><div class="font-extrabold text-sm">Safety first</div><div class="text-xs text-gray-500 mt-1">Masked contacts • Fraud checks • Admin review</div></div>
+</div>
+
+<div id="app" class="relative max-w-md mx-auto bg-white min-h-screen shadow-pop border-x border-red-100/60 pb-28">
+
+<!-- HEADER -->
+<header class="sticky top-0 z-40 bg-white/92 backdrop-blur-md border-b border-red-50" style="background:rgba(255,255,255,.93)">
+<div class="flex items-center justify-between px-4 py-3">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-red">
+<svg class="w-6 h-6 text-white drop-float" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C12 2 5 10.2 5 15a7 7 0 0 0 14 0C19 10.2 12 2 12 2Zm0 18a5 5 0 0 1-5-5c0-1.2.4-2.6 1.1-4 .3 1.2 1 2.3 2 3.1.4-1.6 1.3-3.4 2.7-5.4 1.7 2.6 4.2 6 4.2 6.3a5 5 0 0 1-5 5Z" opacity=".95"/><path d="M9.5 15.5a2.5 2.5 0 0 0 2.5 2.5" stroke="#fff" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
+</div>
+<div>
+<h1 class="font-extrabold text-[17px] leading-none tracking-tight">Blood <span class="text-primary">Network</span></h1>
+<p class="text-[11px] text-gray-500 font-semibold mt-1">Hyderabad • Bank-only donation</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="flex items-center gap-1.5 text-[11px] font-extrabold bg-green-50 text-green-700 border border-green-200 px-2.5 py-1.5 rounded-full"><span class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></span> LIVE</span>
+</div>
+</div>
+<div class="px-4 pb-2.5"><div class="flex items-center gap-2 bg-primaryLight border border-red-100 rounded-full px-3 py-1.5"><svg class="w-3.5 h-3.5 text-primary shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Z"/></svg><p class="text-[11.5px] font-bold text-primary truncate">Need blood? Find a nearby donor.</p></div></div>
+</header>
+
+<main class="px-4 pt-4">
+
+<!-- ============ HOME ============ -->
+<section id="panel-home" class="tab-panel space-y-4">
+<!-- HERO -->
+<div class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#b3001b] via-[#900015] to-[#5e000f] text-white shadow-red">
+<div class="absolute inset-0 hero-dots opacity-60"></div>
+<div class="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
+<div class="absolute -left-8 bottom-10 w-32 h-32 bg-black/20 rounded-full blur-2xl"></div>
+<div class="relative p-5">
+<div class="flex items-center gap-2">
+<span class="bg-white/15 backdrop-blur border border-white/20 text-[11px] font-extrabold px-3 py-1 rounded-full tracking-wide">EMERGENCY • HYDERABAD</span>
+<span class="bg-yellow-300 text-black text-[11px] font-extrabold px-2.5 py-1 rounded-full">Smart radius</span>
+</div>
+<h2 class="mt-3 text-[28px] leading-[1.05] font-extrabold tracking-tight">Need blood?<br><span class="text-red-100">Find a donor</span><br>nearby, fast.</h2>
+<p class="mt-2 text-[13px] text-white/80 font-medium leading-relaxed">ABO-compatible matching by distance & cooldown. Chat safely — no phone numbers. Bank-only donation.</p>
+<button data-action="goto-sos" class="pulse-ring mt-4 w-full bg-white text-primary font-extrabold text-[17px] py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-[.98] transition">
+<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C12 2 5 10.2 5 15a7 7 0 0 0 14 0C19 10.2 12 2 12 2Z"/></svg>
+Send emergency SOS
+</button>
+<button data-action="goto-donors" class="mt-2 w-full bg-white/10 border border-white/25 backdrop-blur text-white font-bold text-[14px] py-3 rounded-2xl active:scale-[.98] transition">Become a donor • Save lives</button>
+<div class="mt-4 grid grid-cols-3 gap-2 text-center">
+<div class="bg-white/10 border border-white/15 rounded-2xl py-2.5 backdrop-blur"><div class="font-extrabold text-lg leading-none"><span id="heroDonorCount">–</span></div><div class="text-[10px] font-bold text-white/70 mt-1 uppercase tracking-wide">Donors</div></div>
+<div class="bg-white/10 border border-white/15 rounded-2xl py-2.5 backdrop-blur"><div class="font-extrabold text-lg leading-none"><span id="heroBankCount">4</span></div><div class="text-[10px] font-bold text-white/70 mt-1 uppercase tracking-wide">Blood banks</div></div>
+<div class="bg-white/10 border border-white/15 rounded-2xl py-2.5 backdrop-blur"><div class="font-extrabold text-lg leading-none"><span id="heroEscMin">10</span><span class="text-xs">m</span></div><div class="text-[10px] font-bold text-white/70 mt-1 uppercase tracking-wide">Escalation</div></div>
+</div>
+</div>
+<div class="relative mx-3 mb-3 rounded-2xl overflow-hidden border border-white/20">
+<img src="https://res.cloudinary.com/demo/image/fetch/w_800,q_auto,f_auto,c_fill/https://images.unsplash.com/photo-1615461066841-6116e61058f4" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=800&q=80&auto=format&fit=crop'" alt="Blood donation" class="w-full h-44 object-cover">
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+<div class="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
+<span class="bg-white/95 text-primary text-[11px] font-extrabold px-2.5 py-1.5 rounded-full flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Zm-1.2 13.6-3-3 1.4-1.4 1.6 1.6 4.2-4.2 1.4 1.4-5.6 5.6Z"/></svg> Donation at authorized banks</span>
+<span class="bg-black/50 backdrop-blur text-white text-[11px] font-bold px-2.5 py-1.5 rounded-full">Hyderabad</span>
+</div>
+</div>
+</div>
+
+<div class="flex gap-2.5 bg-amber-50 border border-amber-200 rounded-2xl p-3">
+<div class="w-9 h-9 rounded-xl bg-amber-400/20 flex items-center justify-center shrink-0"><svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-1.5-5.036A11.959 11.959 0 0 1 12 3c2.73 0 5.28.965 7.5 2.664m-13.5 0C4.28 4.965 1.73 4 1.73 4S1 9.5 1 12c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10 0-1.153-.102-2.363-.294-3.536"/></svg></div>
+<p class="text-[12px] leading-snug text-amber-900"><b>Donations always happen at authorized blood banks;</b> matches are <b>potential matches only.</b> Never pay for blood.</p>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card">
+<div class="flex items-center justify-between"><h3 class="font-extrabold text-[16px]">How it works</h3><span class="text-[11px] font-extrabold text-primary bg-primaryLight px-2.5 py-1 rounded-full">4 STEPS</span></div>
+<div class="mt-3 space-y-2.5" id="howSteps"></div>
+<div class="mt-3 bg-gray-50 rounded-2xl p-3 flex gap-2.5">
+<img src="https://res.cloudinary.com/demo/image/fetch/w_300,q_auto,f_auto,c_fill/https://images.unsplash.com/photo-1576091160399-112ba8d25d1d" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&q=80&auto=format&fit=crop'" class="w-16 h-16 rounded-xl object-cover shrink-0" alt="Matching">
+<p class="text-[12px] text-gray-600 leading-snug"><b class="text-gray-900">Smart matching:</b> ABO compatibility (plasma = reverse ABO) + distance + ID-on-file + cooldown eligibility = match score.</p>
+</div>
+</div>
+
+<!-- LIVE DONORS -->
+<div>
+<div class="flex items-center justify-between px-1"><h3 class="font-extrabold text-[16px]">Nearby donors</h3><button data-action="goto-donors" class="text-primary text-[12px] font-extrabold">View all →</button></div>
+<div id="homeDonors" class="mt-2 flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scroll-thin"></div>
+</div>
+
+<!-- BANKS -->
+<div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card">
+<h3 class="font-extrabold text-[16px]">Authorized blood banks</h3>
+<p class="text-[12px] text-gray-500 font-medium">All donations happen here. Never at home.</p>
+<div class="mt-3 grid grid-cols-1 gap-2" id="homeBanks"></div>
+</div>
+
+<!-- SAFETY PROMISE -->
+<div class="rounded-[22px] p-5 bg-gradient-to-br from-gray-900 to-black text-white relative overflow-hidden">
+<div class="absolute inset-0 hero-dots opacity-30"></div>
+<div class="relative">
+<div class="flex items-center gap-2"><div class="w-9 h-9 rounded-xl bg-green-500 flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Zm-1.2 13.6-3-3 1.4-1.4 1.6 1.6 4.2-4.2 1.4 1.4-5.6 5.6Z"/></svg></div><h3 class="font-extrabold text-[16px]">Our safety promise</h3></div>
+<div class="mt-3 space-y-2.5 text-[13px]">
+<div class="flex gap-2.5 items-start"><span class="text-green-400 font-black">✓</span><span><b>Contact masking</b> — phone numbers are never shown. Chat via platform only.</span></div>
+<div class="flex gap-2.5 items-start"><span class="text-green-400 font-black">✓</span><span><b>Fraud checks</b> — duplicates & money mentions are held for review.</span></div>
+<div class="flex gap-2.5 items-start"><span class="text-green-400 font-black">✓</span><span><b>Bank-only</b> — Red Cross, Chiranjeevi, Govt & Charminar centres.</span></div>
+</div>
+<button data-action="goto-safety" class="mt-4 w-full bg-white text-black font-extrabold py-3 rounded-xl text-[13px]">Read safety & report →</button>
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer class="rounded-[22px] border border-gray-100 bg-gray-50/60 p-4 text-center">
+<div class="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-3.5 py-2 shadow-sm">
+<svg class="w-5 h-5" viewBox="0 0 40 24" fill="none"><ellipse cx="13" cy="15" rx="9" ry="6" fill="#3448C5"/><ellipse cx="24" cy="12" rx="10" ry="7" fill="#00A4E4" opacity=".9"/><text x="20" y="21" font-size="7" font-weight="800" fill="#fff" text-anchor="middle">CLD</text></svg>
+<span class="text-[12px] font-extrabold text-gray-700">Images delivered with Cloudinary</span>
+</div>
+<p class="mt-3 text-[11px] text-gray-500 leading-relaxed">Blood Network • Hyderabad • For emergency assistance call 108.<br>Donations always at authorized blood banks; matches are potential matches only.</p>
+<p class="mt-1 text-[11px] font-bold text-gray-400">© 2026 Blood Network • Made for Hyderabad</p>
+</footer>
+</section>
+
+<!-- ============ SOS ============ -->
+<section id="panel-sos" class="tab-panel hidden space-y-4">
+<div class="flex items-center justify-between">
+<div><h2 class="font-extrabold text-[20px] tracking-tight">Emergency SOS</h2><p class="text-[12px] text-gray-500 font-medium">Smart matching in seconds</p></div>
+<div class="flex gap-2">
+<button id="demoFillBtn" class="text-[11px] font-extrabold bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-full transition">Fill demo</button>
+<button id="newSosBtn" class="hidden text-[11px] font-extrabold bg-primaryLight text-primary border border-red-200 px-3 py-2 rounded-full">+ New SOS</button>
+</div>
+</div>
+
+<!-- FORM -->
+<div id="sosFormCard" class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card space-y-4">
+<div>
+<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Patient name *</label>
+<input id="f_patient" placeholder="e.g., Lakshmi Rao" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:font-medium placeholder:text-gray-400 transition">
+</div>
+<div>
+<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Contact number * <span class="text-gray-400 font-bold normal-case">(never shown to donors)</span></label>
+<input id="f_phone" inputmode="numeric" maxlength="10" placeholder="10 digit mobile" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:font-medium placeholder:text-gray-400 transition">
+</div>
+<div>
+<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Patient blood group * <span class="text-primary normal-case font-bold">(8 types)</span></label>
+<div id="bloodGrid" class="mt-2 grid grid-cols-4 gap-2"></div>
+</div>
+<div>
+<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Need type *</label>
+<div id="needGrid" class="mt-2 grid grid-cols-3 gap-2"></div>
+<p id="needHint" class="mt-2 text-[11.5px] text-gray-500 font-medium bg-gray-50 rounded-xl p-2.5">Whole blood: standard ABO match. Donor RBC must be compatible with patient.</p>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Units *</label>
+<div class="mt-1.5 flex items-center gap-2 bg-gray-50 border-2 border-gray-100 rounded-2xl p-1.5">
+<button id="unitsMinus" class="w-9 h-9 rounded-xl bg-white shadow font-black text-primary text-lg">−</button>
+<div class="flex-1 text-center font-extrabold text-[18px]"><span id="unitsVal">2</span><span class="text-[11px] text-gray-500 font-bold"> units</span></div>
+<button id="unitsPlus" class="w-9 h-9 rounded-xl bg-primary text-white shadow font-black text-lg">+</button>
+</div>
+</div>
+<div>
+<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Area *</label>
+<select id="f_area" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-[13px] text-[14px] font-semibold bg-white"></select>
+</div>
+</div>
+<div>
+<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Urgency *</label>
+<div id="urgGrid" class="mt-2 grid grid-cols-3 gap-2"></div>
+</div>
+<div>
+<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Hospital *</label>
+<input id="f_hospital" list="hospList" placeholder="e.g., Apollo Hospitals, Jubilee Hills" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:text-gray-400">
+<datalist id="hospList"></datalist>
+</div>
+<div>
+<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Notes <span class="text-gray-400 font-bold normal-case">(optional)</span></label>
+<textarea id="f_notes" rows="2" placeholder="Ward / doctor / attender info. Never mention money." class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-medium placeholder:text-gray-400"></textarea>
+</div>
+<div>
+<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Medical report / doctor's slip photo <span class="text-gray-400 font-bold normal-case">(optional)</span></label>
+<input id="f_file" type="file" accept="image/*" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[13px] font-medium bg-white file:mr-3 file:border-0 file:bg-primaryLight file:text-primary file:font-extrabold file:px-3 file:py-1.5 file:rounded-full">
+<p class="mt-1 text-[11px] text-gray-400 font-medium">Stored as a private Cloudinary asset. Never shown publicly.</p>
+</div>
+<div class="bg-primaryLight border border-red-100 rounded-2xl p-3 flex gap-2.5">
+<svg class="w-5 h-5 text-primary shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Z"/></svg>
+<p class="text-[12px] text-red-900 leading-snug"><b>Anti-fraud active:</b> duplicate requests & money mentions are auto-held for review. Donations only at authorized banks.</p>
+</div>
+<button id="sosSubmit" class="w-full bg-primary hover:bg-primaryDark text-white font-extrabold text-[16px] py-4 rounded-2xl shadow-red active:scale-[.98] transition flex items-center justify-center gap-2">
+<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C12 2 5 10.2 5 15a7 7 0 0 0 14 0C19 10.2 12 2 12 2Z"/></svg>
+Find donors now
+</button>
+<p class="text-center text-[11px] text-gray-400 font-medium">By continuing you agree to bank-only donation & safe chat.</p>
+</div>
+
+<!-- ACTIVE REQUEST -->
+<div id="activeRequestWrap" class="hidden space-y-4"></div>
+
+<!-- PAST -->
+<div id="pastWrap" class="hidden">
+<h3 class="font-extrabold text-[15px] px-1">Recent requests</h3>
+<div id="pastList" class="mt-2 space-y-2"></div>
+</div>
+</section>
+
+<!-- ============ DONORS ============ -->
+<section id="panel-donors" class="tab-panel hidden space-y-4">
+<div><h2 class="font-extrabold text-[20px] tracking-tight">Donors</h2><p class="text-[12px] text-gray-500 font-medium">Register • Stay available • Get alerts</p></div>
+<div id="myDonorWrap"></div>
+
+<div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card">
+<h3 class="font-extrabold text-[15px]">Cooldown & eligibility</h3>
+<div class="mt-3 grid grid-cols-3 gap-2">
+<div class="bg-red-50 border border-red-100 rounded-2xl p-3 text-center"><div class="w-8 h-8 mx-auto rounded-xl bg-primary text-white flex items-center justify-center"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C12 2 5 10.2 5 15a7 7 0 0 0 14 0C19 10.2 12 2 12 2Z"/></svg></div><div class="mt-1.5 font-extrabold text-[13px]">Whole blood</div><div class="text-[11px] font-extrabold text-primary">90 days</div></div>
+<div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-center"><div class="w-8 h-8 mx-auto rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm">P</div><div class="mt-1.5 font-extrabold text-[13px]">Plasma</div><div class="text-[11px] font-extrabold text-amber-600">28 days</div></div>
+<div class="bg-blue-50 border border-blue-200 rounded-2xl p-3 text-center"><div class="w-8 h-8 mx-auto rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm">P</div><div class="mt-1.5 font-extrabold text-[13px]">Platelets</div><div class="text-[11px] font-extrabold text-blue-600">14 days</div></div>
+</div>
+<p class="mt-2.5 text-[11.5px] text-gray-500 font-medium bg-gray-50 rounded-xl p-2.5">Next eligible date = last donation + cooldown. Ineligible donors get lower match scores.</p>
+</div>
+
+<div>
+<div class="flex items-center justify-between px-1"><h3 class="font-extrabold text-[15px]">Alerts inbox</h3><span id="inboxCount" class="text-[11px] font-extrabold bg-primary text-white px-2.5 py-1 rounded-full">0</span></div>
+<select id="i-donor" class="mt-2 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[13px] font-semibold bg-white"></select>
+<div id="i-out" class="mt-2 space-y-2"></div>
+</div>
+
+<div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card">
+<h3 class="font-extrabold text-[15px]">Register as donor</h3>
+<p class="text-[12px] text-gray-500 font-medium">Numbers stay masked. Chat only.</p>
+<div class="mt-3 space-y-3">
+<input id="r_name" placeholder="Full name *" class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:text-gray-400">
+<div><label class="text-[11px] font-extrabold text-gray-600 uppercase">Blood group *</label><div id="regBlood" class="mt-1.5 grid grid-cols-4 gap-1.5"></div></div>
+<div class="grid grid-cols-2 gap-2">
+<div><label class="text-[11px] font-extrabold text-gray-600 uppercase">Area *</label><select id="r_area" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold bg-white"></select></div>
+<div><label class="text-[11px] font-extrabold text-gray-600 uppercase">Phone (masked)</label><input id="r_phone" inputmode="numeric" placeholder="98XXXXXX12" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold placeholder:text-gray-400"></div>
+</div>
+<div><label class="text-[11px] font-extrabold text-gray-600 uppercase">Last donation date <span class="text-gray-400 font-bold normal-case">(leave empty if never)</span></label><input id="r_lastDate" type="date" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold"></div>
+<div><label class="text-[11px] font-extrabold text-gray-600 uppercase">Government ID photo <span class="text-gray-400 font-bold normal-case">(optional, stored privately on Cloudinary)</span></label><input id="r_file" type="file" accept="image/*" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[12px] font-medium bg-white file:mr-3 file:border-0 file:bg-primaryLight file:text-primary file:font-extrabold file:px-3 file:py-1 file:rounded-full"><p class="mt-1 text-[11px] text-gray-400 font-medium">Public view shows only a face-blurred thumbnail, labelled "ID uploaded (not verified)".</p></div>
+<button id="regSubmit" class="w-full bg-gray-900 hover:bg-black text-white font-extrabold py-3.5 rounded-2xl text-[14px] active:scale-[.98] transition">Register donor</button>
+</div>
+</div>
+
+<div>
+<div class="flex items-center justify-between px-1"><h3 class="font-extrabold text-[15px]">Donor directory</h3><span class="text-[11px] font-bold text-gray-400" id="dirCount"></span></div>
+<input id="dirSearch" placeholder="Search name or area…" class="mt-2 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-medium placeholder:text-gray-400 bg-white">
+<div id="dirFilters" class="mt-2 flex gap-1.5 overflow-x-auto pb-1 scroll-thin"></div>
+<div id="dirList" class="mt-2 space-y-2"></div>
+</div>
+</section>
+
+<!-- ============ SAFETY ============ -->
+<section id="panel-safety" class="tab-panel hidden space-y-4">
+<div class="rounded-[22px] bg-gradient-to-br from-gray-900 to-black text-white p-5 relative overflow-hidden">
+<div class="absolute inset-0 hero-dots opacity-30"></div>
+<div class="relative flex gap-3">
+<div class="w-12 h-12 rounded-2xl bg-green-500 flex items-center justify-center shrink-0"><svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Zm-1.2 13.6-3-3 1.4-1.4 1.6 1.6 4.2-4.2 1.4 1.4-5.6 5.6Z"/></svg></div>
+<div><h2 class="font-extrabold text-[18px]">Safety first</h2><p class="text-[12px] text-white/70 font-medium mt-0.5">Contact masking • Fraud checks • Review queue. Numbers are never revealed.</p></div>
+</div>
+</div>
+
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-white border border-gray-100 rounded-2xl p-3 text-center shadow-card"><div id="statChecks" class="font-extrabold text-[20px] text-primary">0</div><div class="text-[10px] font-extrabold text-gray-500 uppercase">Active SOS</div></div>
+<div class="bg-white border border-gray-100 rounded-2xl p-3 text-center shadow-card"><div id="statHeld" class="font-extrabold text-[20px] text-amber-600">0</div><div class="text-[10px] font-extrabold text-gray-500 uppercase">Held for review</div></div>
+<div class="bg-white border border-gray-100 rounded-2xl p-3 text-center shadow-card"><div id="statPending" class="font-extrabold text-gray-900">0</div><div class="text-[10px] font-extrabold text-gray-500 uppercase">Donors</div></div>
+</div>
+
+<div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card space-y-2.5">
+<h3 class="font-extrabold text-[15px]">How we protect you</h3>
+<div class="flex gap-2.5 bg-gray-50 rounded-2xl p-3"><span class="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 font-black text-sm">1</span><p class="text-[12.5px]"><b>Contact masking:</b> <span class="text-gray-600">No phone numbers anywhere. “Contact via platform” chat only. Meet solely at banks.</span></p></div>
+<div class="flex gap-2.5 bg-gray-50 rounded-2xl p-3"><span class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 font-black text-sm">2</span><p class="text-[12.5px]"><b>Fraud checks:</b> <span class="text-gray-600">Duplicate SOS (same patient, group, area & number in 6h), 3+ from one number & money words (cash, pay, ₹, UPI…) auto-held.</span></p></div>
+<div class="flex gap-2.5 bg-gray-50 rounded-2xl p-3"><span class="w-8 h-8 rounded-xl bg-green-600 text-white flex items-center justify-center shrink-0 font-black text-sm">3</span><p class="text-[12.5px]"><b>Review:</b> <span class="text-gray-600">Held requests alert nobody until a reviewer clears them. 2 user reports auto-flag a donor or request.</span></p></div>
+</div>
+
+<div class="bg-white border-2 border-red-100 rounded-[22px] p-4 shadow-card">
+<h3 class="font-extrabold text-[15px] flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-primary pulse-dot"></span> Report abuse</h3>
+<div class="mt-3 space-y-2.5">
+<div class="grid grid-cols-2 gap-2">
+<select id="rep_type" class="border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-bold bg-white"><option value="donor">Donor</option><option value="request">Request</option></select>
+<select id="rep_target" class="border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-bold bg-white"></select>
+</div>
+<div id="repReasons" class="grid grid-cols-2 gap-1.5"></div>
+<textarea id="rep_details" rows="2" placeholder="What happened? e.g., asked for ₹2000…" class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[13px] font-medium placeholder:text-gray-400"></textarea>
+<button id="repSubmit" class="w-full bg-primary text-white font-extrabold py-3 rounded-2xl text-[14px] shadow-red active:scale-[.98] transition">Submit report</button>
+</div>
+</div>
+
+<div>
+<div class="flex items-center justify-between px-1"><h3 class="font-extrabold text-[15px]">Review queue</h3><span class="text-[11px] font-bold text-gray-400">Held requests • reviewer can clear</span></div>
+<div id="adminQueue" class="mt-2 space-y-2"></div>
+</div>
+
+<div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card">
+<h3 class="font-extrabold text-[15px]">Never do this</h3>
+<ul class="mt-2 space-y-1.5 text-[12.5px] text-gray-600 font-medium">
+<li class="flex gap-2"><span class="text-primary font-black">✕</span> Never pay for blood. Real donors never ask for money.</li>
+<li class="flex gap-2"><span class="text-primary font-black">✕</span> Never share OTP / UPI / bank details in chat.</li>
+<li class="flex gap-2"><span class="text-primary font-black">✕</span> Never donate outside authorized blood banks.</li>
+<li class="flex gap-2"><span class="text-green-600 font-black">✓</span> Always meet at the authorized blood bank; staff check ID there.</li>
+</ul>
+</div>
+</section>
+
 </main>
-<script src="app.js"></script></body></html>
+
+<!-- BOTTOM NAV -->
+<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t border-red-100 z-40 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2">
+<div class="grid grid-cols-4 gap-1">
+<button data-action="tab" data-tab="home" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-400">
+<span class="nav-ic w-11 h-8 rounded-full flex items-center justify-center transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg></span>
+<span class="text-[11px] font-extrabold">Home</span>
+</button>
+<button data-action="tab" data-tab="sos" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-400 relative">
+<span class="nav-ic w-11 h-8 rounded-full flex items-center justify-center transition"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C12 2 5 10.2 5 15a7 7 0 0 0 14 0C19 10.2 12 2 12 2Z"/></svg></span>
+<span class="text-[11px] font-extrabold">SOS</span>
+<span id="sosBadge" class="hidden absolute top-0 right-6 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">1</span>
+</button>
+<button data-action="tab" data-tab="donors" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-400 relative">
+<span class="nav-ic w-11 h-8 rounded-full flex items-center justify-center transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg></span>
+<span class="text-[11px] font-extrabold">Donors</span>
+<span id="inboxBadge" class="hidden absolute top-0 right-5 min-w-[18px] h-[18px] px-1 rounded-full bg-green-600 text-white text-[10px] font-black flex items-center justify-center">0</span>
+</button>
+<button data-action="tab" data-tab="safety" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-400 relative">
+<span class="nav-ic w-11 h-8 rounded-full flex items-center justify-center transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-1.5-5.036A11.959 11.959 0 0 1 12 3c2.73 0 5.28.965 7.5 2.664m-13.5 0C4.28 4.965 1.73 4 1.73 4S1 9.5 1 12c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10 0-1.153-.102-2.363-.294-3.536"/></svg></span>
+<span class="text-[11px] font-extrabold">Safety</span>
+<span id="safeBadge" class="hidden absolute top-0 right-5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center">0</span>
+</button>
+</div>
+</nav>
+
+<!-- CHAT MODAL -->
+<div id="chatModal" class="hidden fixed inset-0 z-50">
+<div class="absolute inset-0 bg-black/60 backdrop-blur-sm" data-action="chat-close"></div>
+<div class="modal-in absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[26px] overflow-hidden flex flex-col" style="height:82vh">
+<div class="bg-primary text-white p-4 flex items-center gap-3">
+<button data-action="chat-close" class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></button>
+<div id="chatAvatar" class="w-10 h-10 rounded-full bg-white/25 border-2 border-white/40 flex items-center justify-center font-black text-[14px] shrink-0"></div>
+<div class="flex-1 min-w-0"><div id="chatName" class="font-extrabold text-[14px] truncate">Donor</div><div class="text-[11px] text-white/75 font-semibold flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Z"/></svg> Phone masked • Chat via platform</div></div>
+<button id="chatReportBtn" class="text-[11px] font-extrabold bg-white/15 border border-white/20 px-3 py-2 rounded-full">Report</button>
+</div>
+<div class="bg-amber-50 border-b border-amber-200 px-4 py-2 text-[11px] font-bold text-amber-800 text-center">Meet only at authorized blood banks. Never pay.</div>
+<div id="chatMsgs" class="flex-1 overflow-y-auto p-4 space-y-2.5 bg-[#FFF9FA]"></div>
+<div class="p-3 border-t bg-white">
+<div id="quickReplies" class="flex gap-1.5 overflow-x-auto pb-2 scroll-thin"></div>
+<div class="flex gap-2">
+<input id="chatInput" placeholder="Type a safe message…" class="flex-1 border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-medium">
+<button data-action="chat-send" class="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-red shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.27 3.13a59.77 59.77 0 0 1 18.45 8.87 59.77 59.77 0 0 1-18.45 8.87L6 12Zm0 0h7.5"/></svg></button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- REPORT MODAL -->
+<div id="reportModal" class="hidden fixed inset-0 z-50">
+<div class="absolute inset-0 bg-black/60 backdrop-blur-sm" data-action="report-close"></div>
+<div class="modal-in absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[26px] p-5" style="max-height:86vh;overflow-y:auto">
+<div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4"></div>
+<h3 class="font-extrabold text-[17px]">Report <span id="rmTarget" class="text-primary"></span></h3>
+<p class="text-[12px] text-gray-500 font-medium">Reports go to admin review queue.</p>
+<div id="rmReasons" class="mt-3 grid grid-cols-2 gap-2"></div>
+<textarea id="rmDetails" rows="3" placeholder="Describe: asked for money / fake profile…" class="mt-3 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[13px] font-medium"></textarea>
+<div class="mt-3 grid grid-cols-2 gap-2">
+<button data-action="report-close" class="py-3 rounded-2xl bg-gray-100 font-extrabold text-[14px]">Cancel</button>
+<button data-action="report-submit" class="py-3 rounded-2xl bg-primary text-white font-extrabold text-[14px] shadow-red">Submit report</button>
+</div>
+</div>
+</div>
+
+<div id="toastWrap" class="fixed bottom-24 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-[60] space-y-2 pointer-events-none"></div>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
