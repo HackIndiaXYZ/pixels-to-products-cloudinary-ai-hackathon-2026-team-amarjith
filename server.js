@@ -60,7 +60,7 @@ setInterval(() => { db.requests.forEach((r) => { if (lib.needsEscalation(r)) esc
 
 async function api(req, res, url) {
   const m = req.method, p = url.pathname;
-  if (m === 'GET' && p === '/api/config') return send(res, 200, { cloud: cl.CLOUD, live: cl.LIVE, areas: Object.keys(lib.AREAS), groups: lib.GROUPS, components: lib.COMPONENTS, gaps: lib.GAP_DAYS, statuses: STATUS, escalationMinutes: lib.ESCALATION_MS / 60000 });
+  if (m === 'GET' && p === '/api/config') return send(res, 200, { cloud: cl.CLOUD, live: cl.LIVE, areas: Object.keys(lib.AREAS), groups: lib.GROUPS, components: lib.COMPONENTS, gaps: lib.GAP_DAYS, statuses: STATUS, banks: lib.BANKS, escalationMinutes: lib.ESCALATION_MS / 60000 });
   if (m === 'GET' && p === '/api/donors') return send(res, 200, db.donors.map(pub));
   if (m === 'POST' && p === '/api/donors') {
     const b = await body(req);
