@@ -60,12 +60,12 @@ Unit tests (compatibility, plasma rules, per-type cooldown, ranking and radius, 
 npm test
 ```
 Manual demo (2 minutes):
-1. Open the app, tab **Need blood**: patient "Rahul", B+, 2 units, Gachibowli, Critical, any 10-digit number, then **Send emergency SOS**.
-2. See the Cloudinary-generated emergency card, ranked matched donors, and "donors alerted".
-3. Tab **Donor alerts**: pick an alerted donor (for example Lakshmi) to see the notification.
-3b. Tick **Platelets** or **Plasma** in the Need dropdown to see different matching. Press **Simulate 10 min with no reply** on a request to see the radius widen and simulated blood-bank alerts appear in the timeline. Submit the same request twice to see the duplicate flag.
-4. Tab **Donate**: register a donor with an ID photo (stored as a private Cloudinary asset; the public view shows only a face-blurred thumbnail and the label 'ID uploaded (not verified)' - no identity check is performed).
-5. Tab **Requests**: move the request through Contacted, Donation Coordinated and Completed.
+1. Open the app, tab **SOS**: patient "Rahul", B+, 2 units, Gachibowli, Critical, any 10-digit number, then **Find donors now** (the **Fill demo** button pre-fills a sample case).
+2. See the Cloudinary-generated emergency card, ranked matched donors, and "donors alerted" on the live tracker.
+3. Tab **Donors**: pick an alerted donor in the alerts inbox to see the notification, tap **I can donate**, then chat via the platform relay.
+3b. Tick **Platelets** or **Plasma** in the Need grid to see different matching. Press **Simulate 10 min with no reply** on a request to see the radius widen and simulated blood-bank alerts appear in the timeline. Submit the same request twice to see the duplicate flag (tab **Safety** shows the review queue).
+4. Tab **Donors**: register a donor with an ID photo (stored as a private Cloudinary asset; the public view shows only a face-blurred thumbnail and the label 'ID uploaded (not verified)' - no identity check is performed).
+5. Back on tab **SOS**: move the request through Contacted, Donation Coordinated and Completed.
 
 ## Deploy
 A `Dockerfile` and `render.yaml` are included. Create a Render (or Railway/Fly) web service from this repo and set the three `CLOUDINARY_*` variables. Data is kept in a local `data.json` (demo storage; use a database for production).
@@ -74,7 +74,7 @@ A `Dockerfile` and `render.yaml` are included. Create a Render (or Railway/Fly) 
 - `server.js` - HTTP API and static server (no framework)
 - `lib.js` - matching engine and blood compatibility
 - `cloudinary.js` - Cloudinary upload and transformation helpers
-- `index.html`, `app.js` - mobile-first web UI
+- `index.html`, `app.js` - mobile-first web UI (Tailwind, bottom-tab layout: Home / SOS / Donors / Safety)
 - `lib.test.js` - unit tests
 
 ## Roadmap
