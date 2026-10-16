@@ -22,11 +22,13 @@ const AREA_ALIASES = {
   'कुकटपल्ली': 'Kukatpally', 'कुकटपल्लि': 'Kukatpally',
   'सिकंदराबाद': 'Secunderabad', 'सिकन्दराबाद': 'Secunderabad',
   'अमीरपेट': 'Ameerpet', 'अमिरपेट': 'Ameerpet',
-  'दिलसुखनगर': 'Dilsukhnagar', 'दिलसुख़नगर': 'Dilsukhnagar',
+  'दिलसुखनगर': 'Dilsukhnagar', 'दिलसुख़नगर': 'Dilsukhnagar', 'दिलसुखनागर': 'Dilsukhnagar', 'दिलसुख नगर': 'Dilsukhnagar', 'दिलशुखनगर': 'Dilsukhnagar',
   'उप्पल': 'Uppal', 'चारमीनार': 'Charminar', 'चार मीनार': 'Charminar',
   'बंजारा हिल्स': 'Banjara Hills', 'बंजारा हिल': 'Banjara Hills',
   'एलबी नगर': 'LB Nagar', 'एल बी नगर': 'LB Nagar',
-  'मियापुर': 'Miyapur', 'मेहदीपटनम': 'Mehdipatnam',
+  'मियापुर': 'Miyapur', 'मियापूर': 'Miyapur', 'मेहदीपटनम': 'Mehdipatnam', 'मेहदीपट्टनम': 'Mehdipatnam',
+  'कुकटॉपली': 'Kukatpally', 'कुकटपली': 'Kukatpally', 'गचिबॉली': 'Gachibowli', 'गाचिबोली': 'Gachibowli',
+  'माधापुर': 'Madhapur', 'मदापुर': 'Madhapur', 'अप्पल': 'Uppal',
 };
 
 const GROUP_WORDS = {
@@ -58,10 +60,12 @@ function parseGroup(text) {
 
 function parseArea(text) {
   const t = ' ' + norm(text) + ' ';
+  const squash = (x) => x.replace(/\s+/g, '');
+  const ts = squash(t); // STT sometimes splits words: "दिलसुख नागर"
   // longest alias first so "banjara hills" beats "banjara"
   const keys = Object.keys(AREA_ALIASES).sort((a, b) => b.length - a.length);
-  for (const k of keys) if (t.includes(' ' + k + ' ') || t.includes(' ' + k) || t.includes(k + ' ')) return AREA_ALIASES[k];
-  for (const a of Object.keys(lib.AREAS)) if (t.includes(a.toLowerCase())) return a;
+  for (const k of keys) if (t.includes(' ' + k + ' ') || t.includes(' ' + k) || t.includes(k + ' ') || ts.includes(squash(k))) return AREA_ALIASES[k];
+  for (const a of Object.keys(lib.AREAS)) if (t.includes(a.toLowerCase()) || ts.includes(squash(a.toLowerCase()))) return a;
   return null;
 }
 
@@ -81,7 +85,7 @@ function parseComponent(text) {
 
 function parseUnits(text) {
   const t = norm(text);
-  const m = t.match(/\b(\d|ek|do|teen|char|paanch|panch)\s*(unit|units|bottle|bottles)\b/);
+  const m = t.match(/(?<![\p{L}\p{N}])(\d+|ek|do|teen|char|paanch|panch)\s*(unit|units|bottle|bottles|यूनिट|यूनिट्स|बोतल)(?![\p{L}])/u);
   if (!m) return 1;
   const words = { ek: 1, do: 2, teen: 3, char: 4, paanch: 5, panch: 5 };
   return words[m[1]] || Math.max(1, Math.min(10, parseInt(m[1], 10) || 1));
