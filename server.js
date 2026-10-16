@@ -6,6 +6,17 @@ const lib = require('./lib');
 const cl = require('./cloudinary');
 const gnani = require('./gnani');
 const vp = require('./voice-parse');
+const { spawnSync } = require('child_process');
+
+// Browsers record mic audio as webm/opus, which Gnani STT does not accept -
+// transcode those containers to wav (24kHz mono) with ffmpeg before upload.
+const GNANI_AUDIO = /^audio\/(wav|x-wav|mpeg|mp3|ogg|flac|aac|m4a)(;.*)?$/;
+function toWavIfNeeded(buf, mime) {
+  if (GNANI_AUDIO.test(mime)) return { buf, mime };
+  const r = spawnSync('ffmpeg', ['-v', 'error', '-i', 'pipe:0', '-f', 'wav', '-ar', '24000', '-ac', '1', 'pipe:1'], { input: buf, maxBuffer: 32e6 });
+  if (r.status !== 0 || !r.stdout.length) throw new Error('Could not convert ' + mime + ' audio - please use wav/mp3/ogg');
+  return { buf: r.stdout, mime: 'audio/wav' };
+}
 
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'data.json');
@@ -72,7 +83,8 @@ async function api(req, res, url) {
     if (!audio.length) return send(res, 400, { error: 'audioBase64 is required' });
     if (audio.length > 8e6) return send(res, 400, { error: 'Audio too large (max ~6 MB)' });
     const mime = /^audio\/(wav|x-wav|mpeg|mp3|ogg|flac|aac|m4a|mp4|webm)(;.*)?$/.test(b.mimeType || '') ? b.mimeType : 'audio/wav';
-    const transcript = await gnani.stt(audio, mime, b.language || undefined);
+    const conv = toWavIfNeeded(audio, mime);
+    const transcript = await gnani.stt(conv.buf, conv.mime, b.language || undefined);
     const intent = vp.parseVoiceIntent(transcript);
     // Match against the seeded demo donors only - this helpline demo never touches real people.
     let matches = [];
