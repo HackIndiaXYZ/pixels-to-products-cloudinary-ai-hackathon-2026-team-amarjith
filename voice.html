@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Helpline - Blood Network</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-red-50 min-h-screen flex flex-col items-center px-4 py-8">
+  <div class="w-full max-w-md">
+    <a href="/" class="text-red-600 text-sm">&larr; Blood Network</a>
+    <h1 class="text-2xl font-bold text-red-700 mt-2">Voice Helpline</h1>
+    <p class="text-sm text-gray-600 mt-1">Bolkar blood dhundo - Hinglish me bolo, jaise:<br>
+      <span class="italic">"O positive chahiye Dilsukhnagar me urgent"</span></p>
+    <p class="text-xs text-amber-700 bg-amber-100 rounded px-2 py-1 mt-2">Demo: donors shown here are synthetic sample records, not real people.</p>
+
+    <div class="bg-white rounded-2xl shadow p-5 mt-4 flex flex-col items-center gap-3">
+      <button id="mic" class="w-24 h-24 rounded-full bg-red-600 text-white text-4xl shadow-lg active:scale-95">&#127908;</button>
+      <div id="micState" class="text-sm text-gray-500">Tap to speak</div>
+      <div class="text-xs text-gray-400">or</div>
+      <label class="text-sm text-red-600 underline cursor-pointer">Upload an audio file (wav/mp3/ogg)
+        <input id="file" type="file" accept="audio/*" class="hidden">
+      </label>
+    </div>
+
+    <div id="out" class="hidden mt-4 space-y-3">
+      <div class="bg-white rounded-xl shadow p-4">
+        <div class="text-xs text-gray-400 uppercase">Aapne kaha (Prisma STT)</div>
+        <div id="transcript" class="text-gray-800 mt-1"></div>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4">
+        <div class="text-xs text-gray-400 uppercase">Samjha</div>
+        <div id="intent" class="text-gray-800 mt-1 text-sm"></div>
+      </div>
+      <div id="matchCard" class="bg-white rounded-xl shadow p-4 hidden">
+        <div class="text-xs text-gray-400 uppercase">Donor matches (demo data)</div>
+        <ul id="matches" class="mt-1 text-sm text-gray-800 space-y-1"></ul>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4">
+        <div class="text-xs text-gray-400 uppercase">Helpline ka jawab (Timbre TTS)</div>
+        <div id="reply" class="text-gray-800 mt-1 text-sm"></div>
+        <audio id="audio" controls class="w-full mt-2"></audio>
+      </div>
+    </div>
+    <p class="text-[11px] text-gray-400 mt-6 text-center">Voice by Gnani AI models: Prisma (speech-to-text) and Timbre (text-to-speech). Matching runs on Blood Network's existing engine.</p>
+  </div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let recorder, chunks = [], busy = false;
+
+async function callHelpline(blob) {
+  if (busy) return; busy = true;
+  $('micState').textContent = 'Processing...';
+  try {
+    const buf = await blob.arrayBuffer();
+    const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+    const r = await fetch('/api/voice/helpline', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ audioBase64: b64, mimeType: blob.type || 'audio/wav' }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    $('out').classList.remove('hidden');
+    $('transcript').textContent = j.transcript || '(kuch sunai nahi diya)';
+    const i = j.intent;
+    $('intent').textContent = [i.bloodGroup, i.component, i.area, i.units > 1 ? i.units + ' units' : '', i.urgency].filter(Boolean).join(' | ') || '-';
+    if (j.matches && j.matches.length) {
+      $('matchCard').classList.remove('hidden');
+      $('matches').innerHTML = j.matches.map((m) =>
+        `<li><b>${m.name}</b> - ${m.bloodGroup}, ${m.area}, ${m.km} km</li>`).join('');
+    } else $('matchCard').classList.add('hidden');
+    $('reply').textContent = j.replyText;
+    $('audio').src = 'data:audio/wav;base64,' + j.replyAudioBase64;
+    $('audio').play().catch(() => {});
+    $('micState').textContent = 'Tap to speak';
+  } catch (e) {
+    $('micState').textContent = 'Error: ' + e.message;
+  } finally { busy = false; }
+}
+
+$('mic').onclick = async () => {
+  if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const mime = ['audio/wav', 'audio/ogg;codecs=opus', 'audio/webm;codecs=opus', '']
+    .find((x) => !x || MediaRecorder.isTypeSupported(x));
+  recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+  chunks = [];
+  recorder.ondataavailable = (e) => chunks.push(e.data);
+  recorder.onstop = () => {
+    stream.getTracks().forEach((t) => t.stop());
+    $('micState').textContent = 'Tap to speak';
+    callHelpline(new Blob(chunks, { type: recorder.mimeType || 'audio/webm' }));
+  };
+  recorder.start();
+  $('micState').textContent = 'Recording... tap again to stop';
+};
+$('file').onchange = (e) => { if (e.target.files[0]) callHelpline(e.target.files[0]); };
+</script>
+</body>
+</html>
