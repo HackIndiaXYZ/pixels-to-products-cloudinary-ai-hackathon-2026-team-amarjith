@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const lib = require('./lib');
 const cl = require('./cloudinary');
+const gnani = require('./gnani');
+const vp = require('./voice-parse');
 
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'data.json');
@@ -60,6 +62,33 @@ setInterval(() => { db.requests.forEach((r) => { if (lib.needsEscalation(r)) esc
 
 async function api(req, res, url) {
   const m = req.method, p = url.pathname;
+  // Voice helpline: caller speaks Hinglish ("O positive chahiye Dilsukhnagar me"), Gnani Prisma transcribes,
+  // we match donors from the (synthetic demo) donor list, and Gnani Timbre speaks the answer back.
+  if (m === 'GET' && p === '/api/voice/status') return send(res, 200, { live: gnani.configured(), sttLang: gnani.STT_LANG, ttsLang: gnani.TTS_LANG, voice: gnani.TTS_VOICE, demo: true });
+  if (m === 'POST' && p === '/api/voice/helpline') {
+    if (!gnani.configured()) return send(res, 503, { error: 'Voice helpline not configured - set GNANI_API_KEY on the server' });
+    const b = await body(req);
+    const audio = Buffer.from(String(b.audioBase64 || ''), 'base64');
+    if (!audio.length) return send(res, 400, { error: 'audioBase64 is required' });
+    if (audio.length > 8e6) return send(res, 400, { error: 'Audio too large (max ~6 MB)' });
+    const mime = /^audio\/(wav|x-wav|mpeg|mp3|ogg|flac|aac|m4a|mp4|webm)(;.*)?$/.test(b.mimeType || '') ? b.mimeType : 'audio/wav';
+    const transcript = await gnani.stt(audio, mime, b.language || undefined);
+    const intent = vp.parseVoiceIntent(transcript);
+    // Match against the seeded demo donors only - this helpline demo never touches real people.
+    let matches = [];
+    if (intent.bloodGroup && intent.area) {
+      const req0 = { bloodGroup: intent.bloodGroup, component: intent.component, urgency: intent.urgency, area: intent.area, coords: lib.AREAS[intent.area], stage: 0 };
+      matches = lib.matchDonors(req0, db.donors).slice(0, 5);
+    }
+    const replyText = vp.buildReply(intent, matches);
+    const wav = await gnani.tts(replyText, b.language || undefined);
+    return send(res, 200, {
+      transcript, intent, replyText,
+      matches: matches.map((x) => ({ name: x.donor.name, bloodGroup: x.donor.bloodGroup, area: x.donor.area, km: x.km, score: x.score })),
+      replyAudioBase64: wav.toString('base64'),
+      demo: true, // all donors shown here are synthetic demo records
+    });
+  }
   if (m === 'GET' && p === '/api/config') return send(res, 200, { cloud: cl.CLOUD, live: cl.LIVE, areas: Object.keys(lib.AREAS), groups: lib.GROUPS, components: lib.COMPONENTS, gaps: lib.GAP_DAYS, statuses: STATUS, banks: lib.BANKS, escalationMinutes: lib.ESCALATION_MS / 60000 });
   if (m === 'GET' && p === '/api/donors') return send(res, 200, db.donors.map(pub));
   if (m === 'POST' && p === '/api/donors') {
@@ -137,7 +166,7 @@ function withMatches(r) {
 }
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript' };
-const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.js': 'app.js', '/landing': 'landing.html', '/landing.html': 'landing.html' }; // only the UI files are public
+const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.js': 'app.js', '/landing': 'landing.html', '/landing.html': 'landing.html', '/voice': 'voice.html', '/voice.html': 'voice.html' }; // only the UI files are public
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   try {

@@ -82,3 +82,25 @@ SMS/WhatsApp push alerts, hospital and blood-bank inventory dashboards, real OTP
 
 ## Safety notes
 Donor phone numbers are masked in the public view. Medical eligibility is only a basic 90-day gap check and is not medical advice. Always donate through an authorized facility.
+
+## Voice Helpline (Hinglish) - powered by Gnani AI
+
+Callers can ask for blood by voice in Hinglish/Hindi instead of filling a form:
+"O positive chahiye Dilsukhnagar me urgent" -> the helpline transcribes the speech
+with **Gnani Prisma (speech-to-text)**, extracts blood group + area + urgency,
+matches donors with the existing matching engine, and speaks the answer back with
+**Gnani Timbre (text-to-speech)**.
+
+- Page: `/voice` (mic recording + audio-file upload)
+- API: `POST /api/voice/helpline` with `{ audioBase64, mimeType, language? }`;
+  `GET /api/voice/status` reports whether the key is configured.
+- Setup: set `GNANI_API_KEY` on the server (never commit it). Optional overrides:
+  `GNANI_STT_LANG` (default `hi-IN`), `GNANI_TTS_LANG`, `GNANI_TTS_VOICE` (default `Nalini`).
+  Without the key the rest of the app is unaffected and the endpoint returns 503.
+- Parsing is rule-based (`voice-parse.js`, unit tested) and understands Roman
+  Hinglish and Devanagari transcripts, spoken blood groups ("oh positive", "बी नेगेटिव"),
+  Hyderabad area aliases (KPHB, Sikandarabad, ...), components and units.
+- **Demo data only**: matches come from the app's synthetic seed donors and the
+  spoken reply says so. Do not demo with real people's data.
+- Built with AI assistance (Claude) for the Gnani AI Internship Challenge;
+  contribution is declared in the project description.
