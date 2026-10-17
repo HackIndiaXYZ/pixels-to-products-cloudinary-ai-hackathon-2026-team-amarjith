@@ -6,6 +6,7 @@ const lib = require('./lib');
 const cl = require('./cloudinary');
 const gnani = require('./gnani');
 const vp = require('./voice-parse');
+const storage = require('./storage');
 const { spawnSync } = require('child_process');
 
 // Browsers record mic audio as webm/opus, which Gnani STT does not accept -
@@ -20,8 +21,12 @@ function toWavIfNeeded(buf, mime) {
 
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'data.json');
-const db = fs.existsSync(DB_FILE) ? JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) : seed();
-const save = () => fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+let db = fs.existsSync(DB_FILE) ? JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) : seed();
+// Always write the local file too; also write to Upstash Redis when it is configured (survives Render restarts).
+const save = () => {
+  try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); } catch (e) { if (!storage.enabled()) throw e; }
+  storage.save(db);
+};
 const uid = (p) => p + '-' + Math.random().toString(36).slice(2, 7).toUpperCase();
 
 function seed() {
@@ -179,7 +184,7 @@ function withMatches(r) {
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript' };
 const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.js': 'app.js', '/landing': 'landing.html', '/landing.html': 'landing.html', '/voice': 'voice.html', '/voice.html': 'voice.html' }; // only the UI files are public
-http.createServer(async (req, res) => {
+const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   try {
     if (url.pathname.startsWith('/api/')) return await api(req, res, url);
@@ -187,4 +192,11 @@ http.createServer(async (req, res) => {
     if (!name) { res.writeHead(404); return res.end('Not found'); }
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(name)] }); fs.createReadStream(path.join(__dirname, name)).pipe(res);
   } catch (e) { send(res, 500, { error: e.message }); }
-}).listen(PORT, () => console.log(`Blood Network running on http://localhost:${PORT} (Cloudinary: ${cl.LIVE ? 'live uploads' : 'demo mode - set CLOUDINARY_* env vars for uploads'})`));
+});
+(async () => {
+  if (storage.enabled()) {
+    try { const remote = await storage.load(); if (remote && remote.donors) db = remote; else storage.save(db, 0); console.log('Storage: Upstash Redis (persistent)'); }
+    catch (e) { console.error('Storage load failed, using local data:', e.message); }
+  } else console.log('Storage: local data.json only (set UPSTASH_REDIS_REST_URL/TOKEN for persistence)');
+  server.listen(PORT, () => console.log(`Blood Network running on http://localhost:${PORT} (Cloudinary: ${cl.LIVE ? 'live uploads' : 'demo mode - set CLOUDINARY_* env vars for uploads'})`));
+})();
