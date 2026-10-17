@@ -141,7 +141,7 @@ async function submitSOS() {
     await refreshRequests();
     renderAll();
     if (r.status === 'Flagged') toast('Held for review - fraud check triggered', 'warn');
-    else toast('SOS live - ' + r.alerted.length + ' donors alerted', 'good');
+    else toast('SOS saved - ' + r.alerted.length + ' demo donors alerted in-app (no SMS or WhatsApp sent)', 'good');
     setTimeout(() => { const el = $('activeRequestWrap'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
   } catch (e) { toast(e.message, 'err'); }
   btn.disabled = false;
@@ -212,7 +212,8 @@ ${m.accepted ? `<button data-action="contact" data-req="${esc(r.id)}" data-donor
 <div class="rounded-2xl p-2.5 text-center border border-white/20" style="background:rgba(255,255,255,.12)"><div class="text-[10px] font-black text-white/60 uppercase">Units</div><div class="font-extrabold text-[18px]">${r.units || 1}</div></div>
 <div class="rounded-2xl p-2.5 text-center border border-white/20" style="background:rgba(255,255,255,.12)"><div class="text-[10px] font-black text-white/60 uppercase">Area</div><div class="font-extrabold text-[12px]">${esc(r.area)}</div></div>
 </div>
-<div class="mt-2.5 flex items-center gap-2 text-[11px] font-bold text-white/70"><span>📡 Radius ${r.radiusKm} km</span><span>•</span><span>${timeAgo(r.createdAt)}</span><span>•</span><span>${r.alerted.length} alerted</span></div>
+<div class="mt-2.5 flex items-center gap-2 text-[11px] font-bold text-white/70"><span>📡 Radius ${r.radiusKm} km</span><span>•</span><span>${timeAgo(r.createdAt)}</span><span>•</span><span>${r.alerted.length} alerted in-app</span></div>
+<div role="note" class="mt-2 text-[11px] font-semibold text-white bg-black/25 rounded-xl px-3 py-2">Demo mode: alerts show only in this app's Alerts inbox. No SMS, call or WhatsApp is sent to donors or blood banks. Not for real emergencies. Use the WhatsApp button below to share the request yourself.</div>
 <a href="${waLink(r)}" target="_blank" rel="noopener" class="mt-3 w-full bg-[#25D366] hover:bg-[#1fb857] text-white font-extrabold py-3.5 rounded-2xl flex items-center justify-center gap-2 text-[14px] transition active:scale-[.98]">
 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.2 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.4-.7-2.9-1.2-4.7-4.1-4.9-4.3-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5s.8 1.9.8 2c.1.1.1.3 0 .5l-.4.5c-.2.2-.3.4-.1.7.2.3.9 1.5 2 2.4 1.4 1.2 2.5 1.6 2.9 1.8.3.2.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l1.9.9c.3.1.5.2.6.3 0 .1 0 .7-.2 1.3Z"/></svg>
 Share on WhatsApp</a>
@@ -440,7 +441,7 @@ function bindActions() {
     else if (a === 'report') openReport(b.dataset.type, b.dataset.id, b.dataset.name);
     else if (a === 'report-close') { $('reportModal').classList.add('hidden'); document.body.style.overflow = ''; }
     else if (a === 'report-submit') doAction(submitQuickReport);
-    else if (a === 'escalate') doAction(async () => { await post(`/requests/${b.dataset.id}/escalate`, {}); await refreshRequests(); renderAll(); toast('Radius doubled - more donors + blood banks alerted', 'good'); });
+    else if (a === 'escalate') doAction(async () => { await post(`/requests/${b.dataset.id}/escalate`, {}); await refreshRequests(); renderAll(); toast('Radius doubled - more demo donors alerted in-app (blood banks: simulated only)', 'good'); });
     else if (a === 'status') doAction(async () => { await post(`/requests/${b.dataset.id}/status`, { status: b.dataset.to }); await refreshRequests(); renderAll(); toast('Tracker updated: ' + b.dataset.to, 'good'); });
     else if (a === 'clear-req') doAction(async () => { await post(`/requests/${b.dataset.id}/clear`, {}); await refreshRequests(); renderAll(); toast('Request cleared - matching resumed', 'good'); });
     else if (a === 'new-sos') { activeRequestId = null; renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
