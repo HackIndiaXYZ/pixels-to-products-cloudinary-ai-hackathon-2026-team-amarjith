@@ -34,7 +34,9 @@ function rateLimit(bucket, ip, limit, windowMs, now = Date.now()) {
 setInterval(() => { const now = Date.now(); for (const [k, h] of hits) if (now >= h.reset) hits.delete(k); }, 60000).unref();
 
 // Render/Cloudflare put the real client first in X-Forwarded-For.
-const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim();
+// Behind Render, Cloudflare sets true-client-ip / cf-connecting-ip itself (a client cannot forge them),
+// while x-forwarded-for can carry a client-supplied first value. Prefer the Cloudflare headers.
+const clientIp = (req) => String(req.headers['true-client-ip'] || req.headers['cf-connecting-ip'] || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim();
 const clamp = (v, max) => String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, max);
 
 module.exports = { applyHeaders, rateLimit, clientIp, clamp, HEADERS };

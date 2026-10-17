@@ -21,3 +21,12 @@ test('security headers include CSP, nosniff and frame protection', () => {
   assert.strictEqual(sec.HEADERS['X-Content-Type-Options'], 'nosniff');
   assert.strictEqual(sec.HEADERS['X-Frame-Options'], 'DENY');
 });
+
+test('clientIp prefers Cloudflare headers over spoofable x-forwarded-for', () => {
+  const { clientIp } = require('./security');
+  const mk = (h) => ({ headers: h, socket: { remoteAddress: '9.9.9.9' } });
+  assert.strictEqual(clientIp(mk({ 'true-client-ip': '1.2.3.4', 'x-forwarded-for': '6.6.6.6, 1.2.3.4' })), '1.2.3.4');
+  assert.strictEqual(clientIp(mk({ 'cf-connecting-ip': '5.5.5.5', 'x-forwarded-for': '6.6.6.6' })), '5.5.5.5');
+  assert.strictEqual(clientIp(mk({ 'x-forwarded-for': '7.7.7.7, 8.8.8.8' })), '7.7.7.7');
+  assert.strictEqual(clientIp(mk({})), '9.9.9.9');
+});
