@@ -68,7 +68,7 @@ Manual demo (2 minutes):
 5. Back on tab **SOS**: move the request through Contacted, Donation Coordinated and Completed.
 
 ## Deploy
-A `Dockerfile` and `render.yaml` are included. Create a Render (or Railway/Fly) web service from this repo and set the three `CLOUDINARY_*` variables. Data is kept in a local `data.json` (demo storage; use a database for production).
+A `Dockerfile` and `render.yaml` are included. Create a Render (or Railway/Fly) web service from this repo and set the three `CLOUDINARY_*` variables. Data is kept in a local `data.json` by default, which Render's free disk wipes on every restart/redeploy. For persistence, create a free Upstash Redis database (no card) and set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; the whole app state is then saved there and reloaded on start.
 
 ## Project layout
 - `server.js` - HTTP API and static server (no framework)
