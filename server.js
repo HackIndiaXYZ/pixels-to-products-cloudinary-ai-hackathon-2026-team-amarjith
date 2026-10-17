@@ -21,7 +21,7 @@ function toWavIfNeeded(buf, mime) {
 }
 
 const PORT = process.env.PORT || 3000;
-const DB_FILE = path.join(__dirname, 'data.json');
+const DB_FILE = process.env.DATA_FILE || path.join(__dirname, 'data.json');
 let db = fs.existsSync(DB_FILE) ? JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) : seed();
 // Always write the local file too; also write to Upstash Redis when it is configured (survives Render restarts).
 const save = () => {
