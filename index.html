@@ -67,8 +67,8 @@ setTimeout(function () {
 </script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));</script>
 <style>
-/* Desktop layout (>=1024px): full-width page with a left sidebar nav and multi-column panels. Mobile is unchanged. */
-@media (min-width:1024px){
+/* Desktop layout (>=900px, so a phone in "Desktop site" mode, ~980px, gets it too): full-width page with a left sidebar nav and multi-column panels. Mobile is unchanged. */
+@media (min-width:900px){
   #app{max-width:none!important;margin:0!important;padding-left:208px;padding-bottom:2rem!important;border:0!important;box-shadow:none!important}
   nav[aria-label="Main navigation"]{left:0!important;top:0;bottom:0;transform:none!important;width:208px!important;max-width:208px!important;border-top:0;border-right:1px solid #fbd5d9;padding:130px 12px 12px!important}
   nav[aria-label="Main navigation"]>div{display:flex!important;flex-direction:column;gap:6px}
