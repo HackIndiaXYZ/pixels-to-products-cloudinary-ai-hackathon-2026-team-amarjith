@@ -6,6 +6,7 @@ const lib = require('./lib');
 const cl = require('./cloudinary');
 const gnani = require('./gnani');
 const vp = require('./voice-parse');
+const sec = require('./security');
 const { spawnSync } = require('child_process');
 
 // Browsers record mic audio as webm/opus, which Gnani STT does not accept -
@@ -36,10 +37,11 @@ function seed() {
   return { donors, requests: [] };
 }
 
-async function body(req) {
+// Default 64 KB; endpoints that accept images or audio pass a bigger cap.
+async function body(req, max = 64e3) {
   let s = '';
-  for await (const c of req) { s += c; if (s.length > 12e6) throw new Error('Payload too large'); }
-  return s ? JSON.parse(s) : {};
+  for await (const c of req) { s += c; if (s.length > max) { const e = new Error('Payload too large'); e.status = 413; throw e; } }
+  try { return s ? JSON.parse(s) : {}; } catch { const e = new Error('Invalid JSON'); e.status = 400; throw e; }
 }
 const send = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(obj)); };
 const pub = (d) => ({ ...d, phone: undefined, idPublicId: undefined, verified: undefined, idUploaded: Boolean(d.idPublicId), contact: 'via Blood Network relay', cooldownDays: lib.cooldownLeft(d), idUrl: d.idPublicId ? cl.thumbUrl(d.idPublicId, { blurFaces: true }) : null });
@@ -78,7 +80,7 @@ async function api(req, res, url) {
   if (m === 'GET' && p === '/api/voice/status') return send(res, 200, { live: gnani.configured(), sttLang: gnani.STT_LANG, ttsLang: gnani.TTS_LANG, voice: gnani.TTS_VOICE, demo: true });
   if (m === 'POST' && p === '/api/voice/helpline') {
     if (!gnani.configured()) return send(res, 503, { error: 'Voice helpline not configured - set GNANI_API_KEY on the server' });
-    const b = await body(req);
+    const b = await body(req, 12e6);
     const audio = Buffer.from(String(b.audioBase64 || ''), 'base64');
     if (!audio.length) return send(res, 400, { error: 'audioBase64 is required' });
     if (audio.length > 8e6) return send(res, 400, { error: 'Audio too large (max ~6 MB)' });
@@ -104,9 +106,9 @@ async function api(req, res, url) {
   if (m === 'GET' && p === '/api/config') return send(res, 200, { cloud: cl.CLOUD, live: cl.LIVE, areas: Object.keys(lib.AREAS), groups: lib.GROUPS, components: lib.COMPONENTS, gaps: lib.GAP_DAYS, statuses: STATUS, banks: lib.BANKS, escalationMinutes: lib.ESCALATION_MS / 60000 });
   if (m === 'GET' && p === '/api/donors') return send(res, 200, db.donors.map(pub));
   if (m === 'POST' && p === '/api/donors') {
-    const b = await body(req);
-    if (!b.name || !/^\d{10}$/.test(b.phone || '') || !lib.GROUPS.includes(b.bloodGroup) || !lib.AREAS[b.area]) return send(res, 400, { error: 'Name, 10-digit phone, blood group and area are required' });
-    const d = { id: uid('D'), name: b.name, phone: b.phone, bloodGroup: b.bloodGroup, area: b.area, coords: lib.AREAS[b.area],
+    const b = await body(req, 12e6);
+    if (!sec.clamp(b.name, 60) || !/^\d{10}$/.test(b.phone || '') || !lib.GROUPS.includes(b.bloodGroup) || !lib.AREAS[b.area]) return send(res, 400, { error: 'Name, 10-digit phone, blood group and area are required' });
+    const d = { id: uid('D'), name: sec.clamp(b.name, 60), phone: b.phone, bloodGroup: b.bloodGroup, area: b.area, coords: lib.AREAS[b.area],
       lastDonation: b.lastDonation || null, available: true, verified: false, flagged: false, reports: 0, idPublicId: null, idUrl: null, alerts: [] };
     if (b.idImage) { const u = await cl.upload(b.idImage, 'blood-network/donor-ids'); d.idPublicId = u.public_id; d.idUrl = null; d.verified = Boolean(u.public_id); }
     db.donors.push(d); save();
@@ -114,11 +116,11 @@ async function api(req, res, url) {
   }
   if (m === 'GET' && p === '/api/requests') return send(res, 200, db.requests.slice().reverse().map(withMatches));
   if (m === 'POST' && p === '/api/requests') {
-    const b = await body(req);
-    if (!lib.GROUPS.includes(b.bloodGroup) || !lib.AREAS[b.area] || !b.patient || !/^\d{10}$/.test(b.phone || '')) return send(res, 400, { error: 'Patient, 10-digit contact, blood group and area are required' });
-    const r = { id: uid('R'), patient: b.patient, phone: b.phone, bloodGroup: b.bloodGroup, component: lib.COMPONENTS.includes(b.component) ? b.component : 'Whole blood',
+    const b = await body(req, 12e6);
+    if (!lib.GROUPS.includes(b.bloodGroup) || !lib.AREAS[b.area] || !sec.clamp(b.patient, 60) || !/^\d{10}$/.test(b.phone || '')) return send(res, 400, { error: 'Patient, 10-digit contact, blood group and area are required' });
+    const r = { id: uid('R'), patient: sec.clamp(b.patient, 60), phone: b.phone, bloodGroup: b.bloodGroup, component: lib.COMPONENTS.includes(b.component) ? b.component : 'Whole blood',
       units: Math.max(1, +b.units || 1), urgency: ['critical', 'urgent', 'normal'].includes(b.urgency) ? b.urgency : 'urgent', area: b.area, coords: lib.AREAS[b.area],
-      hospital: b.hospital || '', note: b.note || '', status: 'Searching', createdAt: new Date().toISOString(), stage: 0, lastEscalationAt: null,
+      hospital: sec.clamp(b.hospital, 100), note: sec.clamp(b.note, 300), status: 'Searching', createdAt: new Date().toISOString(), stage: 0, lastEscalationAt: null,
       alerted: [], accepted: [], bankAlerts: [], messages: [], timeline: [], flags: [], reports: 0, reportPublicId: null, reportUrl: null };
     r.flags = lib.fraudFlags(r, db.requests);
     if (b.reportImage) { const u = await cl.upload(b.reportImage, 'blood-network/medical-reports'); r.reportPublicId = u.public_id; r.reportUrl = null; }
@@ -181,10 +183,19 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript' };
 const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.js': 'app.js', '/landing': 'landing.html', '/landing.html': 'landing.html', '/voice': 'voice.html', '/voice.html': 'voice.html' }; // only the UI files are public
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
+  sec.applyHeaders(res);
   try {
-    if (url.pathname.startsWith('/api/')) return await api(req, res, url);
+    if (url.pathname.startsWith('/api/')) {
+      if (req.method === 'POST') {
+        const ip = sec.clientIp(req);
+        const tight = /^\/api\/(donors|requests|voice\/helpline)$/.test(url.pathname);
+        const rl = tight ? sec.rateLimit('create', ip, 10, 10 * 60e3) : sec.rateLimit('post', ip, 60, 60e3);
+        if (!rl.ok) { res.setHeader('Retry-After', String(rl.retryAfterSec)); return send(res, 429, { error: 'Too many requests. Please wait a bit and try again.' }); }
+      }
+      return await api(req, res, url);
+    }
     const name = STATIC[url.pathname];
     if (!name) { res.writeHead(404); return res.end('Not found'); }
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(name)] }); fs.createReadStream(path.join(__dirname, name)).pipe(res);
-  } catch (e) { send(res, 500, { error: e.message }); }
+  } catch (e) { send(res, e.status || 500, { error: e.status ? e.message : 'Server error' }); if (!e.status) console.error(e); }
 }).listen(PORT, () => console.log(`Blood Network running on http://localhost:${PORT} (Cloudinary: ${cl.LIVE ? 'live uploads' : 'demo mode - set CLOUDINARY_* env vars for uploads'})`));
