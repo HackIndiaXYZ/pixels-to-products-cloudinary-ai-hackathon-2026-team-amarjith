@@ -59,15 +59,28 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));</script>
 <style>
-/* Desktop layout (>=1024px): wider centered column instead of a stretched phone view. Mobile is unchanged. */
+/* Desktop layout (>=1024px): full-width page with a left sidebar nav and multi-column panels. Mobile is unchanged. */
 @media (min-width:1024px){
-  #app{max-width:960px!important}
-  nav[aria-label="Main navigation"]{max-width:960px!important}
+  #app{max-width:none!important;margin:0!important;padding-left:208px;padding-bottom:2rem!important;border:0!important;box-shadow:none!important}
+  nav[aria-label="Main navigation"]{left:0!important;top:0;bottom:0;transform:none!important;width:208px!important;max-width:208px!important;border-top:0;border-right:1px solid #fbd5d9;padding:130px 12px 12px!important}
+  nav[aria-label="Main navigation"]>div{display:flex!important;flex-direction:column;gap:6px}
+  nav[aria-label="Main navigation"] .navBtn{flex-direction:row;justify-content:flex-start;gap:12px;padding:8px 10px;border-radius:14px}
+  nav[aria-label="Main navigation"] .navBtn span.text-\[11px\]{font-size:14px}
+  #app>header{margin-left:-208px;z-index:50}
+  #sosFormCard,#activeRequestWrap,#pastWrap{grid-column:1/-1}
+  #sosFormCard{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem 2rem}
+  #sosFormCard>*{margin-top:0!important}
+  #sosFormCard>:nth-last-child(-n+2){grid-column:1/-1}
+  main#main{padding:1rem 1.5rem 0!important}
+  .tab-panel:not(.hidden){display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:1rem;align-items:start}
+  .tab-panel>*{margin-top:0!important}
+  .tab-panel>:first-child{grid-column:1/-1}
+  #pastList,#dirList{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.75rem}
   #toastWrap{max-width:480px!important}
-  .modal-in.max-w-md{max-width:560px!important}
-  #pastList,#dirList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+  .modal-in.max-w-md{max-width:640px!important}
 }
 </style>
+
 </head>
 <body>
 <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-white focus:text-primary focus:px-3 focus:py-2 focus:rounded-lg">Skip to content</a>
