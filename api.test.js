@@ -44,11 +44,12 @@ test('voice text fallback responds', async () => {
 
 test('donor lastDonation must be a real past date; units are capped', async () => {
   const base1 = { name: 'T', phone: '9999999999', bloodGroup: 'O+', area: 'Gachibowli' };
+  let n = 0;
   for (const bad of ['banana', '2099-01-01']) {
-    const d = await (await post('/api/donors', { ...base1, lastDonation: bad })).json();
+    const d = await (await post('/api/donors', { ...base1, phone: '99999999' + (90 + n++), lastDonation: bad })).json();
     assert.strictEqual(d.lastDonation, null);
   }
-  const ok = await (await post('/api/donors', { ...base1, lastDonation: '2026-01-05' })).json();
+  const ok = await (await post('/api/donors', { ...base1, phone: '9999999995', lastDonation: '2026-01-05' })).json();
   assert.strictEqual(ok.lastDonation, '2026-01-05');
   const r = await (await post('/api/requests', { patient: 'X', phone: '9999999998', bloodGroup: 'O+', area: 'Gachibowli', units: 99999999 })).json();
   assert.strictEqual(r.units, 10);
@@ -62,4 +63,24 @@ test('tailwind CSS is self-hosted and pages do not need external CDNs', async ()
     const html = await (await fetch(base + p)).text();
     assert.ok(!/cdn\.tailwindcss\.com|fonts\.googleapis\.com/.test(html), p + ' still uses an external CDN');
   }
+});
+
+test('same phone cannot register as donor twice', async () => {
+  const d = { name: 'Dup Test', phone: '9123456780', bloodGroup: 'O+', area: 'Gachibowli' };
+  assert.strictEqual((await post('/api/donors', d)).status, 201);
+  const r = await post('/api/donors', d);
+  assert.strictEqual(r.status, 409);
+});
+test('one client cannot auto-flag with repeat reports; two clients can', async () => {
+  const rep = (ip) => fetch(base + '/api/reports', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-forwarded-for': ip }, body: JSON.stringify({ kind: 'donor', id: 'D-100', reason: 'spam' }) }).then((r) => r.json());
+  const a1 = await rep('10.0.0.1');
+  const a2 = await rep('10.0.0.1');
+  assert.strictEqual(a1.reports, 1);
+  assert.strictEqual(a2.already, true);
+  assert.strictEqual(a2.reports, 1);
+  assert.strictEqual(a2.flagged, false);
+  const b = await rep('10.0.0.2');
+  assert.strictEqual(b.reports, 2);
+  assert.strictEqual(b.flagged, true);
+  assert.ok(!JSON.stringify(await (await fetch(base + '/api/donors')).json()).includes('reporters'));
 });
