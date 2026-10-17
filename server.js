@@ -204,8 +204,8 @@ function withMatches(r) {
   return { ...safe, hasReport: Boolean(reportPublicId), radiusKm: lib.radiusFor(r.urgency, r.stage), matches, cardUrl: cl.requestCardUrl(r) };
 }
 
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml' };
-const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.js': 'app.js', '/i18n.js': 'i18n.js', '/landing': 'landing.html', '/landing.html': 'landing.html', '/voice': 'voice.html', '/voice.html': 'voice.html', '/manifest.webmanifest': 'manifest.webmanifest', '/sw.js': 'sw.js', '/icon.svg': 'icon.svg' }; // only the UI files are public
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.css': 'text/css' };
+const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.js': 'app.js', '/i18n.js': 'i18n.js', '/landing': 'landing.html', '/landing.html': 'landing.html', '/voice': 'voice.html', '/voice.html': 'voice.html', '/manifest.webmanifest': 'manifest.webmanifest', '/sw.js': 'sw.js', '/icon.svg': 'icon.svg', '/tw.css': 'tw.css' }; // only the UI files are public
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   sec.applyHeaders(res);

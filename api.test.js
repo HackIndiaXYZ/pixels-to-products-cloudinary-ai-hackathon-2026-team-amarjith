@@ -53,3 +53,13 @@ test('donor lastDonation must be a real past date; units are capped', async () =
   const r = await (await post('/api/requests', { patient: 'X', phone: '9999999998', bloodGroup: 'O+', area: 'Gachibowli', units: 99999999 })).json();
   assert.strictEqual(r.units, 10);
 });
+
+test('tailwind CSS is self-hosted and pages do not need external CDNs', async () => {
+  const css = await fetch(base + '/tw.css');
+  assert.strictEqual(css.status, 200);
+  assert.match(css.headers.get('content-type'), /text\/css/);
+  for (const p of ['/', '/voice', '/landing']) {
+    const html = await (await fetch(base + p)).text();
+    assert.ok(!/cdn\.tailwindcss\.com|fonts\.googleapis\.com/.test(html), p + ' still uses an external CDN');
+  }
+});
