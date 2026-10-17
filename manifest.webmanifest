@@ -1,0 +1,10 @@
+{
+  "name": "Blood Network",
+  "short_name": "BloodNet",
+  "description": "Emergency blood donor matching",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF0F1",
+  "theme_color": "#b3001b",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
