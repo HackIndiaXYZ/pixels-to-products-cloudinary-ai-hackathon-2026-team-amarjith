@@ -184,7 +184,7 @@ http.createServer(async (req, res) => {
   try {
     if (url.pathname.startsWith('/api/')) return await api(req, res, url);
     const name = STATIC[url.pathname];
-    if (!name) { res.writeHead(404); return res.end('Not found'); }
+    if (!name) { res.writeHead(404, { 'Content-Type': 'text/html' }); return fs.createReadStream(path.join(__dirname, '404.html')).pipe(res); }
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(name)] }); fs.createReadStream(path.join(__dirname, name)).pipe(res);
   } catch (e) { send(res, 500, { error: e.message }); }
 }).listen(PORT, () => console.log(`Blood Network running on http://localhost:${PORT} (Cloudinary: ${cl.LIVE ? 'live uploads' : 'demo mode - set CLOUDINARY_* env vars for uploads'})`));

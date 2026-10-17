@@ -51,9 +51,13 @@ input:focus,select:focus,textarea:focus{border-color:#b3001b!important;box-shado
 .chat-bubble-me{background:#b3001b;color:#fff;border-radius:18px 18px 4px 18px}
 .chat-bubble-them{background:#f3f4f6;color:#111;border-radius:18px 18px 18px 4px}
 select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23666' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+*:focus-visible{outline:3px solid #b3001b;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-white focus:text-primary focus:px-3 focus:py-2 focus:rounded-lg">Skip to content</a>
+<div id="bootLoader" role="status" aria-live="polite" style="position:fixed;inset:0;z-index:9999;background:#FFF5F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;transition:opacity .3s"><div class="drop-float" style="font-size:44px" aria-hidden="true">🩸</div><div style="font-weight:800;font-size:18px;color:#7a0013">Blood Network</div><div id="bootMsg" style="font-size:13px;font-weight:600;color:#4b5563">Loading... first visit can take up to 15 seconds while the free server wakes up.</div></div>
 
 <!-- Desktop ambient -->
 <div class="hidden lg:block fixed inset-0 pointer-events-none">
@@ -91,7 +95,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 <div class="px-4 pb-2.5"><div class="flex items-center gap-2 bg-primaryLight border border-red-100 rounded-full px-3 py-1.5"><svg class="w-3.5 h-3.5 text-primary shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Z"/></svg><p class="text-[11.5px] font-bold text-primary truncate">Need blood? Find a nearby donor.</p></div></div>
 </header>
 
-<main class="px-4 pt-4">
+<main id="main" class="px-4 pt-4">
 
 <!-- ============ HOME ============ -->
 <section id="panel-home" class="tab-panel space-y-4">
@@ -177,7 +181,7 @@ Send emergency SOS
 <span class="text-[12px] font-extrabold text-gray-700">Images delivered with Cloudinary</span>
 </div>
 <p class="mt-3 text-[11px] text-gray-500 leading-relaxed">Blood Network • Hyderabad • For emergency assistance call 108.<br>Donations always at authorized blood banks; matches are potential matches only.</p>
-<p class="mt-1 text-[11px] font-bold text-gray-400">© 2026 Blood Network • Made for Hyderabad</p>
+<p class="mt-1 text-[11px] font-bold text-gray-500">© 2026 Blood Network • Made for Hyderabad</p>
 </footer>
 </section>
 
@@ -194,12 +198,12 @@ Send emergency SOS
 <!-- FORM -->
 <div id="sosFormCard" class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card space-y-4">
 <div>
-<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Patient name *</label>
-<input id="f_patient" placeholder="e.g., Lakshmi Rao" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:font-medium placeholder:text-gray-400 transition">
+<label for="f_patient" class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Patient name *</label>
+<input id="f_patient" placeholder="e.g., Lakshmi Rao" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:font-medium placeholder:text-gray-500 transition">
 </div>
 <div>
-<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Contact number * <span class="text-gray-400 font-bold normal-case">(never shown to donors)</span></label>
-<input id="f_phone" inputmode="numeric" maxlength="10" placeholder="10 digit mobile" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:font-medium placeholder:text-gray-400 transition">
+<label for="f_phone" class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Contact number * <span class="text-gray-500 font-bold normal-case">(never shown to donors)</span></label>
+<input id="f_phone" inputmode="numeric" maxlength="10" placeholder="10 digit mobile" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:font-medium placeholder:text-gray-500 transition">
 </div>
 <div>
 <label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Patient blood group * <span class="text-primary normal-case font-bold">(8 types)</span></label>
@@ -214,13 +218,13 @@ Send emergency SOS
 <div>
 <label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Units *</label>
 <div class="mt-1.5 flex items-center gap-2 bg-gray-50 border-2 border-gray-100 rounded-2xl p-1.5">
-<button id="unitsMinus" class="w-9 h-9 rounded-xl bg-white shadow font-black text-primary text-lg">−</button>
+<button aria-label="Fewer units" id="unitsMinus" class="w-9 h-9 rounded-xl bg-white shadow font-black text-primary text-lg">−</button>
 <div class="flex-1 text-center font-extrabold text-[18px]"><span id="unitsVal">2</span><span class="text-[11px] text-gray-500 font-bold"> units</span></div>
-<button id="unitsPlus" class="w-9 h-9 rounded-xl bg-primary text-white shadow font-black text-lg">+</button>
+<button aria-label="More units" id="unitsPlus" class="w-9 h-9 rounded-xl bg-primary text-white shadow font-black text-lg">+</button>
 </div>
 </div>
 <div>
-<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Area *</label>
+<label for="f_area" class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Area *</label>
 <select id="f_area" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-[13px] text-[14px] font-semibold bg-white"></select>
 </div>
 </div>
@@ -229,18 +233,18 @@ Send emergency SOS
 <div id="urgGrid" class="mt-2 grid grid-cols-3 gap-2"></div>
 </div>
 <div>
-<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Hospital *</label>
-<input id="f_hospital" list="hospList" placeholder="e.g., Apollo Hospitals, Jubilee Hills" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:text-gray-400">
+<label for="f_hospital" class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Hospital *</label>
+<input id="f_hospital" list="hospList" placeholder="e.g., Apollo Hospitals, Jubilee Hills" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:text-gray-500">
 <datalist id="hospList"></datalist>
 </div>
 <div>
-<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Notes <span class="text-gray-400 font-bold normal-case">(optional)</span></label>
-<textarea id="f_notes" rows="2" placeholder="Ward / doctor / attender info. Never mention money." class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-medium placeholder:text-gray-400"></textarea>
+<label for="f_notes" class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Notes <span class="text-gray-500 font-bold normal-case">(optional)</span></label>
+<textarea id="f_notes" rows="2" placeholder="Ward / doctor / attender info. Never mention money." class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-medium placeholder:text-gray-500"></textarea>
 </div>
 <div>
-<label class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Medical report / doctor's slip photo <span class="text-gray-400 font-bold normal-case">(optional)</span></label>
+<label for="f_file" class="text-[12px] font-extrabold text-gray-700 uppercase tracking-wide">Medical report / doctor's slip photo <span class="text-gray-500 font-bold normal-case">(optional)</span></label>
 <input id="f_file" type="file" accept="image/*" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[13px] font-medium bg-white file:mr-3 file:border-0 file:bg-primaryLight file:text-primary file:font-extrabold file:px-3 file:py-1.5 file:rounded-full">
-<p class="mt-1 text-[11px] text-gray-400 font-medium">Stored as a private Cloudinary asset. Never shown publicly.</p>
+<p class="mt-1 text-[11px] text-gray-500 font-medium">Stored as a private Cloudinary asset. Never shown publicly.</p>
 </div>
 <div class="bg-primaryLight border border-red-100 rounded-2xl p-3 flex gap-2.5">
 <svg class="w-5 h-5 text-primary shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Z"/></svg>
@@ -250,7 +254,7 @@ Send emergency SOS
 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C12 2 5 10.2 5 15a7 7 0 0 0 14 0C19 10.2 12 2 12 2Z"/></svg>
 Find donors now
 </button>
-<p class="text-center text-[11px] text-gray-400 font-medium">By continuing you agree to bank-only donation & safe chat.</p>
+<p class="text-center text-[11px] text-gray-500 font-medium">By continuing you agree to bank-only donation & safe chat.</p>
 </div>
 
 <!-- ACTIVE REQUEST -->
@@ -288,21 +292,21 @@ Find donors now
 <h3 class="font-extrabold text-[15px]">Register as donor</h3>
 <p class="text-[12px] text-gray-500 font-medium">Numbers stay masked. Chat only.</p>
 <div class="mt-3 space-y-3">
-<input id="r_name" placeholder="Full name *" class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:text-gray-400">
+<input id="r_name" placeholder="Full name *" class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-semibold placeholder:text-gray-500">
 <div><label class="text-[11px] font-extrabold text-gray-600 uppercase">Blood group *</label><div id="regBlood" class="mt-1.5 grid grid-cols-4 gap-1.5"></div></div>
 <div class="grid grid-cols-2 gap-2">
-<div><label class="text-[11px] font-extrabold text-gray-600 uppercase">Area *</label><select id="r_area" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold bg-white"></select></div>
-<div><label class="text-[11px] font-extrabold text-gray-600 uppercase">Phone (masked)</label><input id="r_phone" inputmode="numeric" placeholder="98XXXXXX12" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold placeholder:text-gray-400"></div>
+<div><label for="r_area" class="text-[11px] font-extrabold text-gray-600 uppercase">Area *</label><select id="r_area" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold bg-white"></select></div>
+<div><label for="r_phone" class="text-[11px] font-extrabold text-gray-600 uppercase">Phone (masked)</label><input id="r_phone" inputmode="numeric" placeholder="98XXXXXX12" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold placeholder:text-gray-500"></div>
 </div>
-<div><label class="text-[11px] font-extrabold text-gray-600 uppercase">Last donation date <span class="text-gray-400 font-bold normal-case">(leave empty if never)</span></label><input id="r_lastDate" type="date" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold"></div>
-<div><label class="text-[11px] font-extrabold text-gray-600 uppercase">Government ID photo <span class="text-gray-400 font-bold normal-case">(optional, stored privately on Cloudinary)</span></label><input id="r_file" type="file" accept="image/*" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[12px] font-medium bg-white file:mr-3 file:border-0 file:bg-primaryLight file:text-primary file:font-extrabold file:px-3 file:py-1 file:rounded-full"><p class="mt-1 text-[11px] text-gray-400 font-medium">Public view shows only a face-blurred thumbnail, labelled "ID uploaded (not verified)".</p></div>
+<div><label for="r_lastDate" class="text-[11px] font-extrabold text-gray-600 uppercase">Last donation date <span class="text-gray-500 font-bold normal-case">(leave empty if never)</span></label><input id="r_lastDate" type="date" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold"></div>
+<div><label for="r_file" class="text-[11px] font-extrabold text-gray-600 uppercase">Government ID photo <span class="text-gray-500 font-bold normal-case">(optional, stored privately on Cloudinary)</span></label><input id="r_file" type="file" accept="image/*" class="mt-1.5 w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[12px] font-medium bg-white file:mr-3 file:border-0 file:bg-primaryLight file:text-primary file:font-extrabold file:px-3 file:py-1 file:rounded-full"><p class="mt-1 text-[11px] text-gray-500 font-medium">Public view shows only a face-blurred thumbnail, labelled "ID uploaded (not verified)".</p></div>
 <button id="regSubmit" class="w-full bg-gray-900 hover:bg-black text-white font-extrabold py-3.5 rounded-2xl text-[14px] active:scale-[.98] transition">Register donor</button>
 </div>
 </div>
 
 <div>
-<div class="flex items-center justify-between px-1"><h3 class="font-extrabold text-[15px]">Donor directory</h3><span class="text-[11px] font-bold text-gray-400" id="dirCount"></span></div>
-<input id="dirSearch" placeholder="Search name or area…" class="mt-2 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-medium placeholder:text-gray-400 bg-white">
+<div class="flex items-center justify-between px-1"><h3 class="font-extrabold text-[15px]">Donor directory</h3><span class="text-[11px] font-bold text-gray-500" id="dirCount"></span></div>
+<input id="dirSearch" placeholder="Search name or area…" class="mt-2 w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-medium placeholder:text-gray-500 bg-white">
 <div id="dirFilters" class="mt-2 flex gap-1.5 overflow-x-auto pb-1 scroll-thin"></div>
 <div id="dirList" class="mt-2 space-y-2"></div>
 </div>
@@ -339,13 +343,13 @@ Find donors now
 <select id="rep_target" class="border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-bold bg-white"></select>
 </div>
 <div id="repReasons" class="grid grid-cols-2 gap-1.5"></div>
-<textarea id="rep_details" rows="2" placeholder="What happened? e.g., asked for ₹2000…" class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[13px] font-medium placeholder:text-gray-400"></textarea>
+<textarea id="rep_details" rows="2" placeholder="What happened? e.g., asked for ₹2000…" class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 text-[13px] font-medium placeholder:text-gray-500"></textarea>
 <button id="repSubmit" class="w-full bg-primary text-white font-extrabold py-3 rounded-2xl text-[14px] shadow-red active:scale-[.98] transition">Submit report</button>
 </div>
 </div>
 
 <div>
-<div class="flex items-center justify-between px-1"><h3 class="font-extrabold text-[15px]">Review queue</h3><span class="text-[11px] font-bold text-gray-400">Held requests • reviewer can clear</span></div>
+<div class="flex items-center justify-between px-1"><h3 class="font-extrabold text-[15px]">Review queue</h3><span class="text-[11px] font-bold text-gray-500">Held requests • reviewer can clear</span></div>
 <div id="adminQueue" class="mt-2 space-y-2"></div>
 </div>
 
@@ -363,23 +367,23 @@ Find donors now
 </main>
 
 <!-- BOTTOM NAV -->
-<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t border-red-100 z-40 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2">
+<nav aria-label="Main navigation" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-md border-t border-red-100 z-40 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2">
 <div class="grid grid-cols-4 gap-1">
-<button data-action="tab" data-tab="home" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-400">
+<button aria-label="Home" data-action="tab" data-tab="home" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-500">
 <span class="nav-ic w-11 h-8 rounded-full flex items-center justify-center transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg></span>
 <span class="text-[11px] font-extrabold">Home</span>
 </button>
-<button data-action="tab" data-tab="sos" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-400 relative">
+<button aria-label="SOS request" data-action="tab" data-tab="sos" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-500 relative">
 <span class="nav-ic w-11 h-8 rounded-full flex items-center justify-center transition"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C12 2 5 10.2 5 15a7 7 0 0 0 14 0C19 10.2 12 2 12 2Z"/></svg></span>
 <span class="text-[11px] font-extrabold">SOS</span>
 <span id="sosBadge" class="hidden absolute top-0 right-6 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">1</span>
 </button>
-<button data-action="tab" data-tab="donors" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-400 relative">
+<button aria-label="Donors" data-action="tab" data-tab="donors" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-500 relative">
 <span class="nav-ic w-11 h-8 rounded-full flex items-center justify-center transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/></svg></span>
 <span class="text-[11px] font-extrabold">Donors</span>
 <span id="inboxBadge" class="hidden absolute top-0 right-5 min-w-[18px] h-[18px] px-1 rounded-full bg-green-600 text-white text-[10px] font-black flex items-center justify-center">0</span>
 </button>
-<button data-action="tab" data-tab="safety" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-400 relative">
+<button aria-label="Safety" data-action="tab" data-tab="safety" class="navBtn flex flex-col items-center gap-1 py-1 text-gray-500 relative">
 <span class="nav-ic w-11 h-8 rounded-full flex items-center justify-center transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-1.5-5.036A11.959 11.959 0 0 1 12 3c2.73 0 5.28.965 7.5 2.664m-13.5 0C4.28 4.965 1.73 4 1.73 4S1 9.5 1 12c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10 0-1.153-.102-2.363-.294-3.536"/></svg></span>
 <span class="text-[11px] font-extrabold">Safety</span>
 <span id="safeBadge" class="hidden absolute top-0 right-5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center">0</span>
@@ -392,7 +396,7 @@ Find donors now
 <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" data-action="chat-close"></div>
 <div class="modal-in absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[26px] overflow-hidden flex flex-col" style="height:82vh">
 <div class="bg-primary text-white p-4 flex items-center gap-3">
-<button data-action="chat-close" class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></button>
+<button aria-label="Close chat" data-action="chat-close" class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></button>
 <div id="chatAvatar" class="w-10 h-10 rounded-full bg-white/25 border-2 border-white/40 flex items-center justify-center font-black text-[14px] shrink-0"></div>
 <div class="flex-1 min-w-0"><div id="chatName" class="font-extrabold text-[14px] truncate">Donor</div><div class="text-[11px] text-white/75 font-semibold flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Z"/></svg> Phone masked • Chat via platform</div></div>
 <button id="chatReportBtn" class="text-[11px] font-extrabold bg-white/15 border border-white/20 px-3 py-2 rounded-full">Report</button>
@@ -403,7 +407,7 @@ Find donors now
 <div id="quickReplies" class="flex gap-1.5 overflow-x-auto pb-2 scroll-thin"></div>
 <div class="flex gap-2">
 <input id="chatInput" placeholder="Type a safe message…" class="flex-1 border-2 border-gray-100 rounded-2xl px-4 py-3 text-[14px] font-medium">
-<button data-action="chat-send" class="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-red shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.27 3.13a59.77 59.77 0 0 1 18.45 8.87 59.77 59.77 0 0 1-18.45 8.87L6 12Zm0 0h7.5"/></svg></button>
+<button aria-label="Send message" data-action="chat-send" class="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-red shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.27 3.13a59.77 59.77 0 0 1 18.45 8.87 59.77 59.77 0 0 1-18.45 8.87L6 12Zm0 0h7.5"/></svg></button>
 </div>
 </div>
 </div>
@@ -425,7 +429,7 @@ Find donors now
 </div>
 </div>
 
-<div id="toastWrap" class="fixed bottom-24 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-[60] space-y-2 pointer-events-none"></div>
+<div id="toastWrap" role="status" aria-live="polite" class="fixed bottom-24 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-[60] space-y-2 pointer-events-none"></div>
 </div>
 
 <script src="app.js"></script>

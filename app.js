@@ -86,7 +86,7 @@ const avatarDiv = (d, cls) => `<div class="${cls} bg-gradient-to-br from-primary
 // No identity check is performed; an uploaded ID is only stored privately.
 const idPill = (d, sm) => d.idUploaded
   ? `<span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 ${sm ? 'text-[10px] px-1.5 py-0.5' : 'text-[11px] px-2 py-0.5'} font-extrabold rounded-full">ID uploaded (not verified)</span>`
-  : `<span class="text-[10px] font-bold text-gray-400 border border-gray-200 px-2 py-0.5 rounded-full">No ID</span>`;
+  : `<span class="text-[10px] font-bold text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full">No ID</span>`;
 function waLink(r) {
   const txt = `🩸 EMERGENCY BLOOD NEEDED — ${r.id}\nPatient: ${r.patient}\nBlood: ${r.bloodGroup} • ${r.component} • ${r.units} units\nArea: ${r.area}\nHospital: ${r.hospital || 'Authorized blood bank'}\nUrgency: ${urgLabel(r.urgency)}\n\nDonors near Hyderabad please respond via Blood Network. Donation only at authorized blood banks. Matches are potential matches only.`;
   return 'https://wa.me/?text=' + encodeURIComponent(txt);
@@ -109,7 +109,7 @@ function renderHome() {
 <div class="mt-2 font-extrabold text-[12.5px] truncate">${esc(d.name)}</div>
 <div class="text-[11px] text-gray-500 font-semibold truncate">${esc(d.area)}</div>
 <div class="mt-1.5 flex items-center justify-between">${idPill(d, true)}<span class="text-[10px] font-black ${d.cooldownDays ? 'text-amber-600' : 'text-green-600'}">${d.cooldownDays ? 'Cooldown ' + d.cooldownDays + 'd' : 'Ready'}</span></div>
-</div>`).join('') || '<p class="text-[12px] text-gray-400 font-semibold px-1">No donors registered yet.</p>';
+</div>`).join('') || '<p class="text-[12px] text-gray-500 font-semibold px-1">No donors registered yet.</p>';
   const setT = (id, v) => { const e = $(id); if (e) e.textContent = v; };
   setT('heroDonorCount', donors.length); setT('deskDonorCount', donors.length);
   setT('heroBankCount', banks.length); setT('deskBankCount', banks.length);
@@ -119,10 +119,10 @@ function renderHome() {
 function renderSosForm() {
   const groups = (cfg && cfg.groups) || [];
   $('bloodGrid').innerHTML = groups.map((g) => `<button data-bg="${g}" class="bgBtn py-2.5 rounded-xl font-black text-[14px] border-2 transition ${g === selBlood ? 'bg-primary text-white border-primary shadow-red' : 'bg-white text-gray-700 border-gray-100 hover:border-red-200'}">${g}</button>`).join('');
-  $('needGrid').innerHTML = NEED_TYPES.map((n) => `<button data-need="${n.n}" class="needBtn rounded-2xl border-2 p-2.5 text-center transition ${n.n === selNeed ? 'bg-primary text-white border-primary shadow-red' : 'bg-white border-gray-100 hover:border-red-200'}"><svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24">${n.icon}</svg><div class="text-[12px] font-extrabold mt-1 leading-none">${n.n}</div><div class="text-[10px] font-bold mt-1 ${n.n === selNeed ? 'text-white/70' : 'text-gray-400'}">${n.d}</div></button>`).join('');
+  $('needGrid').innerHTML = NEED_TYPES.map((n) => `<button data-need="${n.n}" class="needBtn rounded-2xl border-2 p-2.5 text-center transition ${n.n === selNeed ? 'bg-primary text-white border-primary shadow-red' : 'bg-white border-gray-100 hover:border-red-200'}"><svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24">${n.icon}</svg><div class="text-[12px] font-extrabold mt-1 leading-none">${n.n}</div><div class="text-[10px] font-bold mt-1 ${n.n === selNeed ? 'text-white/70' : 'text-gray-500'}">${n.d}</div></button>`).join('');
   const hints = { 'Whole blood': 'Whole blood: standard ABO match. Donor RBC must be compatible with patient.', 'Platelets': 'Platelets: matched like whole blood (ABO + Rh) for best compatibility.', 'Plasma': 'Plasma: REVERSE ABO. AB plasma = universal donor. Patient must be RBC-compatible with donor.' };
   $('needHint').textContent = hints[selNeed];
-  $('urgGrid').innerHTML = URGENCIES.map((u) => `<button data-urg="${u.v}" class="urgBtn rounded-2xl border-2 p-2.5 text-center transition ${u.v === selUrg ? 'border-current shadow ' + u.bg : 'bg-white border-gray-100'}"><span class="w-2.5 h-2.5 rounded-full ${u.dot} mx-auto block"></span><div class="text-[12.5px] font-extrabold mt-1 ${u.v === selUrg ? '' : 'text-gray-800'}">${u.n}</div><div class="text-[10.5px] font-bold ${u.v === selUrg ? 'opacity-70' : 'text-gray-400'}">${u.d}</div></button>`).join('');
+  $('urgGrid').innerHTML = URGENCIES.map((u) => `<button data-urg="${u.v}" class="urgBtn rounded-2xl border-2 p-2.5 text-center transition ${u.v === selUrg ? 'border-current shadow ' + u.bg : 'bg-white border-gray-100'}"><span class="w-2.5 h-2.5 rounded-full ${u.dot} mx-auto block"></span><div class="text-[12.5px] font-extrabold mt-1 ${u.v === selUrg ? '' : 'text-gray-800'}">${u.n}</div><div class="text-[10.5px] font-bold ${u.v === selUrg ? 'opacity-70' : 'text-gray-500'}">${u.d}</div></button>`).join('');
   $('unitsVal').textContent = units;
   const areas = ((cfg && cfg.areas) || []).map((a) => `<option>${esc(a)}</option>`).join('');
   if (!$('f_area').options.length) { $('f_area').innerHTML = areas; $('r_area').innerHTML = areas; }
@@ -154,7 +154,7 @@ function reqCard(r) {
   const statuses = (cfg && cfg.statuses) || [];
   const si = Math.max(0, statuses.indexOf(r.status));
   const pct = statuses.length > 1 ? (si / (statuses.length - 1)) * 100 : 0;
-  const cardImg = `<div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card"><h3 class="font-extrabold text-[15px]">Emergency card <span class="text-gray-400 font-bold text-[12px]">(Cloudinary)</span></h3><img class="mt-2 w-full rounded-2xl" src="${safeImageUrl(r.cardUrl)}" alt="Emergency request card generated by Cloudinary"><p class="mt-2 text-[11px] text-gray-500 font-medium">Auto-generated shareable card - long-press to save and forward on WhatsApp.</p>${r.hasReport ? '<p class="mt-1 text-[11px] text-gray-500 font-medium">📎 Medical report attached (stored privately, not shown publicly).</p>' : ''}</div>`;
+  const cardImg = `<div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card"><h3 class="font-extrabold text-[15px]">Emergency card <span class="text-gray-500 font-bold text-[12px]">(Cloudinary)</span></h3><img class="mt-2 w-full rounded-2xl" src="${safeImageUrl(r.cardUrl)}" alt="Emergency request card generated by Cloudinary"><p class="mt-2 text-[11px] text-gray-500 font-medium">Auto-generated shareable card - long-press to save and forward on WhatsApp.</p>${r.hasReport ? '<p class="mt-1 text-[11px] text-gray-500 font-medium">📎 Medical report attached (stored privately, not shown publicly).</p>' : ''}</div>`;
   if (flagged) {
     return `<div class="rounded-[22px] bg-gradient-to-br from-amber-500 to-orange-600 text-white p-5 shadow-pop relative overflow-hidden">
 <div class="absolute inset-0 hero-dots opacity-40"></div>
@@ -168,11 +168,11 @@ function reqCard(r) {
 </div></div>${cardImg}`;
   }
   const stepsHTML = statuses.map((s, i) => `${i ? `<div class="step-line ${i <= si ? 'fill' : ''}"></div>` : ''}<div class="flex-1 flex flex-col items-center gap-1.5 min-w-0">
-<div class="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-black ${i <= si ? 'bg-primary text-white shadow-red' : 'bg-gray-100 text-gray-400'}">${i < si ? '✓' : i + 1}</div>
-<div class="text-[8.5px] font-extrabold text-center leading-tight ${i <= si ? 'text-primary' : 'text-gray-400'}">${esc(s)}</div></div>`).join('');
-  const tlHTML = [...(r.timeline || [])].reverse().map((e) => { const [ic, tn] = tlIcon(e.text); return `<div class="timeline-item flex gap-2.5 items-start py-2">${toneIcon(ic, tn)}<div class="flex-1 min-w-0"><div class="font-extrabold text-[13px] leading-tight">${esc(e.text)}</div><div class="text-[10.5px] text-gray-400 font-bold mt-0.5">${fmtTime(e.at)} • ${timeAgo(e.at)}</div></div></div>`; }).join('');
+<div class="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-black ${i <= si ? 'bg-primary text-white shadow-red' : 'bg-gray-100 text-gray-500'}">${i < si ? '✓' : i + 1}</div>
+<div class="text-[8.5px] font-extrabold text-center leading-tight ${i <= si ? 'text-primary' : 'text-gray-500'}">${esc(s)}</div></div>`).join('');
+  const tlHTML = [...(r.timeline || [])].reverse().map((e) => { const [ic, tn] = tlIcon(e.text); return `<div class="timeline-item flex gap-2.5 items-start py-2">${toneIcon(ic, tn)}<div class="flex-1 min-w-0"><div class="font-extrabold text-[13px] leading-tight">${esc(e.text)}</div><div class="text-[10.5px] text-gray-500 font-bold mt-0.5">${fmtTime(e.at)} • ${timeAgo(e.at)}</div></div></div>`; }).join('');
   const msgs = r.messages || [];
-  const chatHTML = msgs.length ? `<div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card"><h3 class="font-extrabold text-[15px]">Platform chat <span class="text-gray-400 font-bold text-[12px]">(numbers hidden)</span></h3><div class="mt-2 space-y-2">${msgs.map((m) => `<div class="flex ${m.from === 'donor' ? 'justify-start' : 'justify-end'}"><div class="${m.from === 'donor' ? 'chat-bubble-them' : 'chat-bubble-me'} max-w-[85%] px-3.5 py-2.5 text-[13px] font-semibold leading-snug">${esc(m.text)}${m.warn ? ' <span class="block mt-1 text-[10px] font-black text-amber-200">⚠ money mentioned - donation is never paid</span>' : ''}</div></div>`).join('')}</div></div>` : '';
+  const chatHTML = msgs.length ? `<div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card"><h3 class="font-extrabold text-[15px]">Platform chat <span class="text-gray-500 font-bold text-[12px]">(numbers hidden)</span></h3><div class="mt-2 space-y-2">${msgs.map((m) => `<div class="flex ${m.from === 'donor' ? 'justify-start' : 'justify-end'}"><div class="${m.from === 'donor' ? 'chat-bubble-them' : 'chat-bubble-me'} max-w-[85%] px-3.5 py-2.5 text-[13px] font-semibold leading-snug">${esc(m.text)}${m.warn ? ' <span class="block mt-1 text-[10px] font-black text-amber-200">⚠ money mentioned - donation is never paid</span>' : ''}</div></div>`).join('')}</div></div>` : '';
   const acc = (r.matches || []).filter((m) => m.accepted);
   const chatBtns = acc.map((m) => `<button data-action="contact" data-req="${esc(r.id)}" data-donor="${esc(m.id)}" class="bg-gray-900 hover:bg-black text-white font-extrabold text-[12.5px] py-2.5 rounded-xl transition">💬 Chat with ${esc(m.name)} (relay)</button>`).join('');
   const matchHTML = !(r.matches || []).length
@@ -189,7 +189,7 @@ ${m.score != null ? `<span class="bg-green-50 text-green-700 border border-green
 ${m.accepted ? '<span class="bg-green-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">✓ CAN DONATE</span>' : m.alerted ? '<span class="bg-gray-100 text-gray-600 text-[10px] font-black px-2 py-0.5 rounded-full">🔔 ALERTED</span>' : ''}
 </div>
 ${m.score != null ? `<div class="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="score-fill h-full bg-gradient-to-r from-primary to-orange-500 rounded-full" style="width:${m.score}%"></div></div>` : ''}
-<div class="text-[10.5px] font-bold text-gray-400 mt-1">${esc(m.area)}${m.cooldownDays ? ' • cooldown ' + m.cooldownDays + 'd' : ' • ready'} • 🔒 contact via platform</div>
+<div class="text-[10.5px] font-bold text-gray-500 mt-1">${esc(m.area)}${m.cooldownDays ? ' • cooldown ' + m.cooldownDays + 'd' : ' • ready'} • 🔒 contact via platform</div>
 </div></div>
 <div class="mt-2.5 grid grid-cols-[1fr_auto] gap-2">
 ${m.accepted ? `<button data-action="contact" data-req="${esc(r.id)}" data-donor="${esc(m.id)}" class="bg-gray-900 hover:bg-black text-white font-extrabold text-[12.5px] py-2.5 rounded-xl transition">💬 Contact via platform</button>` : `<span class="bg-gray-50 border border-gray-100 text-gray-500 font-extrabold text-[12px] py-2.5 rounded-xl text-center">Waiting for reply</span>`}
@@ -234,14 +234,14 @@ ${si < statuses.length - 1 ? `<div class="mt-3 grid grid-cols-2 gap-2">
 </div>` : `<div class="mt-3 bg-green-50 border border-green-200 rounded-2xl p-3 text-center text-[13px] font-extrabold text-green-700">🎉 Donation completed. Thank you, Hyderabad heroes!</div>`}
 </div>
 <div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card">
-<h3 class="font-extrabold text-[15px]">Timeline <span class="text-gray-400 font-bold text-[12px]">(${(r.timeline || []).length})</span></h3>
+<h3 class="font-extrabold text-[15px]">Timeline <span class="text-gray-500 font-bold text-[12px]">(${(r.timeline || []).length})</span></h3>
 <div class="mt-2">${tlHTML}</div>
 </div>
 ${r.bankAlerts && r.bankAlerts.length ? `<div class="bg-amber-50 border border-amber-200 rounded-[22px] p-4"><div class="font-extrabold text-[13px] text-amber-900">🏥 Blood banks alerted (simulated - timeline record only)</div><div class="mt-1 text-[12px] font-semibold text-amber-800">${r.bankAlerts.map(escapeHtml).join(', ')}</div></div>` : ''}
 ${chatHTML}
 ${chatBtns ? `<div class="space-y-2">${chatBtns}</div>` : ''}
 <div>
-<div class="flex items-center justify-between px-1"><h3 class="font-extrabold text-[15px]">Ranked donors <span class="text-gray-400 font-bold">(${(r.matches || []).length})</span></h3><span class="text-[10.5px] font-bold text-gray-400">ABO • km • score</span></div>
+<div class="flex items-center justify-between px-1"><h3 class="font-extrabold text-[15px]">Ranked donors <span class="text-gray-500 font-bold">(${(r.matches || []).length})</span></h3><span class="text-[10.5px] font-bold text-gray-500">ABO • km • score</span></div>
 <div class="mt-2 space-y-2.5">${matchHTML}</div>
 </div>`;
 }
@@ -256,7 +256,7 @@ function renderSOS() {
   $('pastWrap').classList.toggle('hidden', past.length === 0 && !active);
   $('pastList').innerHTML = past.map((q) => { const u2 = urgStyle(q.urgency); return `<button data-action="view-req" data-id="${esc(q.id)}" class="w-full text-left bg-white border border-gray-100 rounded-2xl p-3 shadow-card flex items-center gap-3 hover:border-red-200 transition">
 <span class="w-11 h-11 rounded-2xl bg-primary text-white font-black flex items-center justify-center text-[13px] shrink-0">${esc(q.bloodGroup)}</span>
-<div class="flex-1 min-w-0"><div class="font-extrabold text-[13px] truncate">${esc(q.patient)} <span class="font-mono text-[11px] text-gray-400">${esc(q.id)}</span></div><div class="text-[11.5px] text-gray-500 font-semibold truncate">${esc(q.component)} • ${q.units}u • ${esc(q.area)} • ${timeAgo(q.createdAt)}</div></div>
+<div class="flex-1 min-w-0"><div class="font-extrabold text-[13px] truncate">${esc(q.patient)} <span class="font-mono text-[11px] text-gray-500">${esc(q.id)}</span></div><div class="text-[11.5px] text-gray-500 font-semibold truncate">${esc(q.component)} • ${q.units}u • ${esc(q.area)} • ${timeAgo(q.createdAt)}</div></div>
 <span class="text-[10px] font-black px-2 py-1 rounded-full ${q.status === 'Flagged' ? 'bg-amber-100 text-amber-700' : q.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-primaryLight text-primary'}">${q.status === 'Flagged' ? 'HELD' : esc(q.status).toUpperCase()}</span>
 </button>`; }).join('');
   const live = requests.filter((q) => q.status !== 'Flagged' && q.status !== 'Completed').length;
@@ -351,7 +351,7 @@ function renderSafety() {
   fillReportTargets();
   const q = $('adminQueue');
   q.innerHTML = flagged.length ? flagged.map((r) => `<div class="bg-white border border-amber-200 rounded-[20px] p-3 shadow-card">
-<div class="flex items-center gap-2"><span class="text-[10px] font-black bg-gray-900 text-white px-2 py-1 rounded-full font-mono">${esc(r.id)}</span><span class="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-1 rounded-full">HELD</span><span class="ml-auto text-[10.5px] text-gray-400 font-bold">${timeAgo(r.createdAt)}</span></div>
+<div class="flex items-center gap-2"><span class="text-[10px] font-black bg-gray-900 text-white px-2 py-1 rounded-full font-mono">${esc(r.id)}</span><span class="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-1 rounded-full">HELD</span><span class="ml-auto text-[10.5px] text-gray-500 font-bold">${timeAgo(r.createdAt)}</span></div>
 <div class="mt-1.5 font-extrabold text-[13.5px]">${esc(r.patient)} <span class="text-primary">• ${esc(r.bloodGroup)} ${esc(r.component)}</span></div>
 <div class="text-[12px] text-gray-500 font-medium leading-snug">${(r.flags || []).map(escapeHtml).join('; ') || 'Reported by users.'}</div>
 <div class="mt-2.5"><button data-action="clear-req" data-id="${esc(r.id)}" class="w-full bg-green-600 text-white font-extrabold py-2.5 rounded-xl text-[13px]">✓ Reviewer: clear request</button></div>
@@ -383,7 +383,7 @@ function renderChat() {
   const sys = `<div class="text-center"><span class="inline-block bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold px-3 py-2 rounded-2xl leading-snug">Connected for ${esc(chatCtx.requestId)}. Numbers masked. Meet only at authorized banks.</span></div>`;
   box.innerHTML = sys + msgs.map((m) => m.from === chatCtx.as
     ? `<div class="flex justify-end"><div class="chat-bubble-me max-w-[80%] px-3.5 py-2.5 text-[13px] font-semibold leading-snug">${esc(m.text)}${m.warn ? ' <span class="block mt-1 text-[10px] font-black text-amber-200">⚠ money mentioned - donation is never paid</span>' : ''}<div class="text-[10px] opacity-70 font-bold mt-0.5 text-right">${fmtTime(m.at)}</div></div></div>`
-    : `<div class="flex justify-start"><div class="chat-bubble-them max-w-[80%] px-3.5 py-2.5 text-[13px] font-semibold leading-snug">${esc(m.text)}${m.warn ? ' <span class="block mt-1 text-[10px] font-black text-amber-600">⚠ money mentioned - donation is never paid</span>' : ''}<div class="text-[10px] text-gray-400 font-bold mt-0.5">${fmtTime(m.at)}</div></div></div>`).join('');
+    : `<div class="flex justify-start"><div class="chat-bubble-them max-w-[80%] px-3.5 py-2.5 text-[13px] font-semibold leading-snug">${esc(m.text)}${m.warn ? ' <span class="block mt-1 text-[10px] font-black text-amber-600">⚠ money mentioned - donation is never paid</span>' : ''}<div class="text-[10px] text-gray-500 font-bold mt-0.5">${fmtTime(m.at)}</div></div></div>`).join('');
   box.scrollTop = box.scrollHeight;
 }
 async function sendChat(text) {
@@ -514,4 +514,6 @@ async function init() {
   setInterval(async () => { try { await refreshAll(); renderAll(); if (!$('chatModal').classList.contains('hidden')) renderChat(); if (activeTab === 'donors') loadAlerts().catch(() => {}); } catch (e) {} }, 15000);
   if (!welcomed) { welcomed = true; setTimeout(() => toast('Welcome to Blood Network Hyderabad', 'ok'), 600); }
 }
-init().then(() => { if (location.hash === '#sos') switchTab('sos'); });
+const hideBoot = () => { const b = document.getElementById('bootLoader'); if (b) { b.style.opacity = '0'; setTimeout(() => b.remove(), 300); } };
+init().then(() => { if (location.hash === '#sos') switchTab('sos'); }).finally(hideBoot);
+setTimeout(hideBoot, 20000);
