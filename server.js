@@ -1,4 +1,5 @@
 // Blood Network - zero-dependency Node server (Node >= 18). Run: node server.js
+const demoEmail = require('./demo-email');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -149,7 +150,7 @@ async function api(req, res, url) {
     if (r.flags.length) { r.status = 'Flagged'; log(r, 'Held for review, no alerts sent: ' + r.flags.join('; ')); }
     else {
       const n = alertDonors(r, Math.max(3, r.units * 2));
-      if (n) { r.status = 'Donor Found'; log(r, `${n} compatible donors alerted.`); } else log(r, 'No compatible donor in range yet. Escalation will widen the search.');
+      if (n) { r.status = 'Donor Found'; log(r, `${n} compatible donors alerted.`); demoEmail.sendDemo(r, n).then((ok) => { if (ok) log(r, 'Demo email alert sent to the project owner only.'); }); } else log(r, 'No compatible donor in range yet. Escalation will widen the search.');
     }
     db.requests.push(r); save();
     return send(res, 201, withMatches(r));
