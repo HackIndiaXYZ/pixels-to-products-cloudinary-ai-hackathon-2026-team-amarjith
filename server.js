@@ -202,7 +202,7 @@ function withMatches(r) {
 }
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript' };
-const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.js': 'app.js', '/landing': 'landing.html', '/landing.html': 'landing.html', '/voice': 'voice.html', '/voice.html': 'voice.html' }; // only the UI files are public
+const STATIC = { '/': 'index.html', '/index.html': 'index.html', '/app.js': 'app.js', '/i18n.js': 'i18n.js', '/landing': 'landing.html', '/landing.html': 'landing.html', '/voice': 'voice.html', '/voice.html': 'voice.html' }; // only the UI files are public
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   sec.applyHeaders(res);
