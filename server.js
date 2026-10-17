@@ -50,7 +50,7 @@ async function body(req, max = 64e3) {
   try { return s ? JSON.parse(s) : {}; } catch { const e = new Error('Invalid JSON'); e.status = 400; throw e; }
 }
 const send = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(obj)); };
-const pub = (d) => ({ ...d, phone: undefined, idPublicId: undefined, verified: undefined, idUploaded: Boolean(d.idPublicId), contact: 'via Blood Network relay', cooldownDays: lib.cooldownLeft(d), idUrl: d.idPublicId ? cl.thumbUrl(d.idPublicId, { blurFaces: true }) : null });
+const pub = (d) => ({ ...d, reporters: undefined, phone: undefined, idPublicId: undefined, verified: undefined, idUploaded: Boolean(d.idPublicId), contact: 'via Blood Network relay', cooldownDays: lib.cooldownLeft(d), idUrl: d.idPublicId ? cl.thumbUrl(d.idPublicId, { blurFaces: true }) : null });
 
 const STATUS = ['Searching', 'Donor Found', 'Contacted', 'Donation Coordinated', 'Completed'];
 // Accept only a real past/today YYYY-MM-DD date; anything else counts as 'never donated'.
@@ -133,6 +133,7 @@ async function api(req, res, url) {
   if (m === 'POST' && p === '/api/donors') {
     const b = await body(req, 12e6);
     if (!sec.clamp(b.name, 60) || !/^\d{10}$/.test(b.phone || '') || !lib.GROUPS.includes(b.bloodGroup) || !lib.AREAS[b.area]) return send(res, 400, { error: 'Name, 10-digit phone, blood group and area are required' });
+    if (db.donors.some((x) => x.phone === b.phone)) return send(res, 409, { error: 'This phone number is already registered as a donor' });
     const d = { id: uid('D'), name: sec.clamp(b.name, 60), phone: b.phone, bloodGroup: b.bloodGroup, area: b.area, coords: lib.AREAS[b.area],
       lastDonation: validDate(b.lastDonation), available: true, verified: false, flagged: false, reports: 0, idPublicId: null, idUrl: null, alerts: [] };
     if (b.idImage) { const u = await cl.upload(b.idImage, 'blood-network/donor-ids'); d.idPublicId = u.public_id; d.idUrl = null; d.verified = Boolean(u.public_id); }
@@ -187,6 +188,11 @@ async function api(req, res, url) {
     const b = await body(req);
     const t = b.kind === 'donor' ? find(db.donors, b.id) : find(db.requests, b.id);
     if (!t) return send(res, 404, { error: 'Nothing to report' });
+    // One report per client per target: a single person cannot hit the 2-report auto-flag alone.
+    const who = require('crypto').createHash('sha256').update(sec.clientIp(req)).digest('hex').slice(0, 16);
+    t.reporters = t.reporters || [];
+    if (t.reporters.includes(who)) return send(res, 200, { ok: true, already: true, reports: t.reports || 0, flagged: Boolean(t.flagged || t.status === 'Flagged') });
+    t.reporters.push(who);
     t.reports = (t.reports || 0) + 1; // 2 reports (e.g. someone asking for money) auto-flag
     if (t.reports >= 2) { if (b.kind === 'donor') t.flagged = true; else { t.status = 'Flagged'; log(t, 'Reported by users: ' + (b.reason || 'money demand')); } }
     save(); return send(res, 200, { ok: true, reports: t.reports, flagged: Boolean(t.flagged || t.status === 'Flagged') });
@@ -200,7 +206,7 @@ async function api(req, res, url) {
 }
 function withMatches(r) {
   const matches = lib.matchDonors(r, db.donors).slice(0, 6).map((x) => ({ ...pub(x.donor), km: x.km, score: x.score, alerted: r.alerted.includes(x.donor.id), accepted: r.accepted.includes(x.donor.id) }));
-  const { phone, reportPublicId, reportUrl, ...safe } = r; // requester phone and private medical report never leave the server
+  const { phone, reportPublicId, reportUrl, reporters, ...safe } = r; // requester phone and private medical report never leave the server
   return { ...safe, hasReport: Boolean(reportPublicId), radiusKm: lib.radiusFor(r.urgency, r.stage), matches, cardUrl: cl.requestCardUrl(r) };
 }
 
