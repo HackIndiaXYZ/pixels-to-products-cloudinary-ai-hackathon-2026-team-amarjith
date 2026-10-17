@@ -53,6 +53,8 @@ const send = (res, code, obj) => { res.writeHead(code, { 'Content-Type': 'applic
 const pub = (d) => ({ ...d, phone: undefined, idPublicId: undefined, verified: undefined, idUploaded: Boolean(d.idPublicId), contact: 'via Blood Network relay', cooldownDays: lib.cooldownLeft(d), idUrl: d.idPublicId ? cl.thumbUrl(d.idPublicId, { blurFaces: true }) : null });
 
 const STATUS = ['Searching', 'Donor Found', 'Contacted', 'Donation Coordinated', 'Completed'];
+// Accept only a real past/today YYYY-MM-DD date; anything else counts as 'never donated'.
+const validDate = (v) => { const s = String(v || ''); const t = Date.parse(s); return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(t) && t <= Date.now() ? s : null; };
 const today = () => new Date().toISOString().slice(0, 10);
 const find = (arr, id) => arr.find((x) => x.id === id);
 const log = (r, text) => r.timeline.push({ at: new Date().toISOString(), text });
@@ -132,7 +134,7 @@ async function api(req, res, url) {
     const b = await body(req, 12e6);
     if (!sec.clamp(b.name, 60) || !/^\d{10}$/.test(b.phone || '') || !lib.GROUPS.includes(b.bloodGroup) || !lib.AREAS[b.area]) return send(res, 400, { error: 'Name, 10-digit phone, blood group and area are required' });
     const d = { id: uid('D'), name: sec.clamp(b.name, 60), phone: b.phone, bloodGroup: b.bloodGroup, area: b.area, coords: lib.AREAS[b.area],
-      lastDonation: b.lastDonation || null, available: true, verified: false, flagged: false, reports: 0, idPublicId: null, idUrl: null, alerts: [] };
+      lastDonation: validDate(b.lastDonation), available: true, verified: false, flagged: false, reports: 0, idPublicId: null, idUrl: null, alerts: [] };
     if (b.idImage) { const u = await cl.upload(b.idImage, 'blood-network/donor-ids'); d.idPublicId = u.public_id; d.idUrl = null; d.verified = Boolean(u.public_id); }
     db.donors.push(d); save();
     return send(res, 201, pub(d));
@@ -142,7 +144,7 @@ async function api(req, res, url) {
     const b = await body(req, 12e6);
     if (!lib.GROUPS.includes(b.bloodGroup) || !lib.AREAS[b.area] || !sec.clamp(b.patient, 60) || !/^\d{10}$/.test(b.phone || '')) return send(res, 400, { error: 'Patient, 10-digit contact, blood group and area are required' });
     const r = { id: uid('R'), patient: sec.clamp(b.patient, 60), phone: b.phone, bloodGroup: b.bloodGroup, component: lib.COMPONENTS.includes(b.component) ? b.component : 'Whole blood',
-      units: Math.max(1, +b.units || 1), urgency: ['critical', 'urgent', 'normal'].includes(b.urgency) ? b.urgency : 'urgent', area: b.area, coords: lib.AREAS[b.area],
+      units: Math.min(10, Math.max(1, Math.floor(+b.units) || 1)), urgency: ['critical', 'urgent', 'normal'].includes(b.urgency) ? b.urgency : 'urgent', area: b.area, coords: lib.AREAS[b.area],
       hospital: sec.clamp(b.hospital, 100), note: sec.clamp(b.note, 300), status: 'Searching', createdAt: new Date().toISOString(), stage: 0, lastEscalationAt: null,
       alerted: [], accepted: [], bankAlerts: [], messages: [], timeline: [], flags: [], reports: 0, reportPublicId: null, reportUrl: null };
     r.flags = lib.fraudFlags(r, db.requests);

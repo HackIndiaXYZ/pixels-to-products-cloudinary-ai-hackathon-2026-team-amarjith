@@ -41,3 +41,15 @@ test('voice text fallback responds', async () => {
   const r = await post('/api/voice/text', { text: 'need O positive blood urgently' });
   assert.ok(r.status < 500);
 });
+
+test('donor lastDonation must be a real past date; units are capped', async () => {
+  const base1 = { name: 'T', phone: '9999999999', bloodGroup: 'O+', area: 'Gachibowli' };
+  for (const bad of ['banana', '2099-01-01']) {
+    const d = await (await post('/api/donors', { ...base1, lastDonation: bad })).json();
+    assert.strictEqual(d.lastDonation, null);
+  }
+  const ok = await (await post('/api/donors', { ...base1, lastDonation: '2026-01-05' })).json();
+  assert.strictEqual(ok.lastDonation, '2026-01-05');
+  const r = await (await post('/api/requests', { patient: 'X', phone: '9999999998', bloodGroup: 'O+', area: 'Gachibowli', units: 99999999 })).json();
+  assert.strictEqual(r.units, 10);
+});
