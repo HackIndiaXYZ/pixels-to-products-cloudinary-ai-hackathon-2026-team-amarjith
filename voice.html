@@ -15,52 +15,94 @@
     <p class="text-xs text-amber-700 bg-amber-100 rounded px-2 py-1 mt-2">Demo: donors shown here are synthetic sample records, not real people.</p>
 
     <div class="bg-white rounded-2xl shadow p-5 mt-4 flex flex-col items-center gap-3">
-      <button id="mic" class="w-24 h-24 rounded-full bg-red-600 text-white text-4xl shadow-lg active:scale-95">&#127908;</button>
-      <div id="micState" class="text-sm text-gray-500">Tap to speak</div>
-      <div class="text-xs text-gray-400">or</div>
-      <label class="text-sm text-red-600 underline cursor-pointer">Upload an audio file (wav/mp3/ogg)
-        <input id="file" type="file" accept="audio/*" class="hidden">
+      <button id="mic" aria-label="Start or stop recording" class="w-24 h-24 rounded-full bg-red-600 text-white text-4xl shadow-lg active:scale-95">&#127908;</button>
+      <div id="micState" role="status" aria-live="polite" class="text-sm text-gray-600">Tap to speak</div>
+      <div class="text-xs text-gray-500">or</div>
+      <label class="text-sm text-red-700 underline cursor-pointer">Upload an audio file (wav/mp3/ogg)
+        <input id="file" type="file" accept="audio/*" class="sr-only">
       </label>
+      <div class="text-xs text-gray-500">or type your request</div>
+      <form id="textForm" class="w-full flex gap-2">
+        <label for="typed" class="sr-only">Type your blood request</label>
+        <input id="typed" maxlength="300" placeholder="O positive chahiye Dilsukhnagar me" class="flex-1 min-w-0 border-2 border-gray-200 rounded-xl px-3 py-2 text-sm">
+        <button class="bg-red-700 text-white font-bold text-sm px-4 rounded-xl">Search</button>
+      </form>
+      <div id="micErr" role="alert" class="hidden text-xs text-red-700 bg-red-50 rounded px-2 py-1 w-full text-center"></div>
     </div>
 
     <div id="out" class="hidden mt-4 space-y-3">
       <div class="bg-white rounded-xl shadow p-4">
-        <div class="text-xs text-gray-400 uppercase">Aapne kaha (Prisma STT)</div>
+        <div class="text-xs text-gray-500 uppercase">Aapne kaha (Prisma STT)</div>
         <div id="transcript" class="text-gray-800 mt-1"></div>
       </div>
       <div class="bg-white rounded-xl shadow p-4">
-        <div class="text-xs text-gray-400 uppercase">Samjha</div>
+        <div class="text-xs text-gray-500 uppercase">Samjha</div>
         <div id="intent" class="text-gray-800 mt-1 text-sm"></div>
       </div>
       <div id="matchCard" class="bg-white rounded-xl shadow p-4 hidden">
-        <div class="text-xs text-gray-400 uppercase">Donor matches (demo data)</div>
+        <div class="text-xs text-gray-500 uppercase">Donor matches (demo data)</div>
         <ul id="matches" class="mt-1 text-sm text-gray-800 space-y-1"></ul>
       </div>
       <div class="bg-white rounded-xl shadow p-4">
-        <div class="text-xs text-gray-400 uppercase">Helpline ka jawab (Timbre TTS)</div>
+        <div class="text-xs text-gray-500 uppercase">Helpline ka jawab (Timbre TTS)</div>
         <div id="reply" class="text-gray-800 mt-1 text-sm"></div>
         <audio id="audio" controls class="w-full mt-2"></audio>
       </div>
     </div>
-    <p class="text-[11px] text-gray-400 mt-6 text-center">Voice by Gnani AI models: Prisma (speech-to-text) and Timbre (text-to-speech). Matching runs on Blood Network's existing engine.</p>
+    <p class="text-[11px] text-gray-500 mt-6 text-center">Voice by Gnani AI models: Prisma (speech-to-text) and Timbre (text-to-speech). Matching runs on Blood Network's existing engine.</p>
   </div>
 
 <script>
 const $ = (id) => document.getElementById(id);
 let recorder, chunks = [], busy = false;
 
+const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const showErr = (msg) => { const e = $('micErr'); e.textContent = msg; e.classList.toggle('hidden', !msg); };
+// btoa over a spread of a big array overflows the call stack, so encode in chunks.
+function toBase64(bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
 async function callHelpline(blob) {
   if (busy) return; busy = true;
+  showErr('');
   $('micState').textContent = 'Processing...';
   try {
     const buf = await blob.arrayBuffer();
-    const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
     const r = await fetch('/api/voice/helpline', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ audioBase64: b64, mimeType: blob.type || 'audio/wav' }),
+      body: JSON.stringify({ audioBase64: toBase64(new Uint8Array(buf)), mimeType: blob.type || 'audio/wav' }),
     });
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    render(j);
+    $('audio').src = 'data:audio/wav;base64,' + j.replyAudioBase64;
+    $('audio').play().catch(() => {});
+    $('micState').textContent = 'Tap to speak';
+  } catch (e) {
+    $('micState').textContent = 'Tap to speak';
+    showErr('Voice did not work (' + e.message + '). You can type your request below instead.');
+  } finally { busy = false; }
+}
+
+async function callText(text) {
+  if (busy) return; busy = true;
+  showErr('');
+  try {
+    const r = await fetch('/api/voice/text', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    render(j);
+    $('audio').removeAttribute('src');
+    $('audio').classList.add('hidden');
+  } catch (e) { showErr(e.message); } finally { busy = false; }
+}
+
+function render(j) {
+  {
+    $('audio').classList.remove('hidden');
     $('out').classList.remove('hidden');
     $('transcript').textContent = j.transcript || '(kuch sunai nahi diya)';
     const i = j.intent;
@@ -68,20 +110,23 @@ async function callHelpline(blob) {
     if (j.matches && j.matches.length) {
       $('matchCard').classList.remove('hidden');
       $('matches').innerHTML = j.matches.map((m) =>
-        `<li><b>${m.name}</b> - ${m.bloodGroup}, ${m.area}, ${m.km} km</li>`).join('');
+        `<li><b>${esc(m.name)}</b> - ${esc(m.bloodGroup)}, ${esc(m.area)}, ${esc(m.km)} km</li>`).join('');
     } else $('matchCard').classList.add('hidden');
     $('reply').textContent = j.replyText;
-    $('audio').src = 'data:audio/wav;base64,' + j.replyAudioBase64;
-    $('audio').play().catch(() => {});
-    $('micState').textContent = 'Tap to speak';
-  } catch (e) {
-    $('micState').textContent = 'Error: ' + e.message;
-  } finally { busy = false; }
+  }
 }
 
 $('mic').onclick = async () => {
   if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
+    showErr('Recording is not supported on this browser. Type your request or upload an audio file.'); return;
+  }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) {
+    showErr(e && e.name === 'NotAllowedError' ? 'Microphone is blocked. Allow it in browser settings, or type your request below.' : 'No microphone found. Type your request below or upload an audio file.');
+    return;
+  }
+  showErr('');
   const mime = ['audio/wav', 'audio/ogg;codecs=opus', 'audio/webm;codecs=opus', '']
     .find((x) => !x || MediaRecorder.isTypeSupported(x));
   recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
@@ -95,6 +140,7 @@ $('mic').onclick = async () => {
   recorder.start();
   $('micState').textContent = 'Recording... tap again to stop';
 };
+$('textForm').onsubmit = (e) => { e.preventDefault(); const t = $('typed').value.trim(); if (t) callText(t); };
 $('file').onchange = (e) => { if (e.target.files[0]) callHelpline(e.target.files[0]); };
 </script>
 </body>

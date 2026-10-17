@@ -73,11 +73,34 @@ function escalate(r) {
 }
 setInterval(() => { db.requests.forEach((r) => { if (lib.needsEscalation(r)) escalate(r); }); }, 15000).unref();
 
+// Shared by the voice helpline and the typed fallback: parse the sentence, match demo donors only.
+function understand(text) {
+  const intent = vp.parseVoiceIntent(text);
+  let matches = [];
+  if (intent.bloodGroup && intent.area) {
+    const req0 = { bloodGroup: intent.bloodGroup, component: intent.component, urgency: intent.urgency, area: intent.area, coords: lib.AREAS[intent.area], stage: 0 };
+    matches = lib.matchDonors(req0, db.donors).slice(0, 5);
+  }
+  return { intent, matches };
+}
+
 async function api(req, res, url) {
   const m = req.method, p = url.pathname;
   // Voice helpline: caller speaks Hinglish ("O positive chahiye Dilsukhnagar me"), Gnani Prisma transcribes,
   // we match donors from the (synthetic demo) donor list, and Gnani Timbre speaks the answer back.
   if (m === 'GET' && p === '/api/voice/status') return send(res, 200, { live: gnani.configured(), sttLang: gnani.STT_LANG, ttsLang: gnani.TTS_LANG, voice: gnani.TTS_VOICE, demo: true });
+  // Typed fallback for when the mic is blocked or unavailable: same parser, no audio.
+  if (m === 'POST' && p === '/api/voice/text') {
+    const b = await body(req);
+    const text = String(b.text || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 300);
+    if (!text) return send(res, 400, { error: 'Type a request first' });
+    const { intent, matches } = understand(text);
+    return send(res, 200, {
+      transcript: text, intent, replyText: vp.buildReply(intent, matches),
+      matches: matches.map((x) => ({ name: x.donor.name, bloodGroup: x.donor.bloodGroup, area: x.donor.area, km: x.km, score: x.score })),
+      demo: true,
+    });
+  }
   if (m === 'POST' && p === '/api/voice/helpline') {
     if (!gnani.configured()) return send(res, 503, { error: 'Voice helpline not configured - set GNANI_API_KEY on the server' });
     const b = await body(req, 12e6);
@@ -87,13 +110,7 @@ async function api(req, res, url) {
     const mime = /^audio\/(wav|x-wav|mpeg|mp3|ogg|flac|aac|m4a|mp4|webm)(;.*)?$/.test(b.mimeType || '') ? b.mimeType : 'audio/wav';
     const conv = toWavIfNeeded(audio, mime);
     const transcript = await gnani.stt(conv.buf, conv.mime, b.language || undefined);
-    const intent = vp.parseVoiceIntent(transcript);
-    // Match against the seeded demo donors only - this helpline demo never touches real people.
-    let matches = [];
-    if (intent.bloodGroup && intent.area) {
-      const req0 = { bloodGroup: intent.bloodGroup, component: intent.component, urgency: intent.urgency, area: intent.area, coords: lib.AREAS[intent.area], stage: 0 };
-      matches = lib.matchDonors(req0, db.donors).slice(0, 5);
-    }
+    const { intent, matches } = understand(transcript);
     const replyText = vp.buildReply(intent, matches);
     const wav = await gnani.tts(replyText, b.language || undefined);
     return send(res, 200, {
