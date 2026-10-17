@@ -75,14 +75,14 @@
     var m = orig.match(/^(\s*)[\s\S]*?(\s*)$/);
     var out = m[1] + tr[idx(cur)] + m[2];
     store.set(n, { orig: orig, applied: out });
-    n.nodeValue = out;
+    if (n.nodeValue !== out) n.nodeValue = out; // writing an identical value still queues a mutation record and loops the observer
   }
   function tPlaceholder(el) {
     var rec = pstore.get(el);
     var orig = rec && el.getAttribute('placeholder') === rec.applied ? rec.orig : el.getAttribute('placeholder');
     if (cur === 'en') { if (rec) { el.setAttribute('placeholder', rec.orig); pstore.delete(el); } return; }
     var tr = P[orig]; if (!tr) return;
-    var out = tr[idx(cur)]; pstore.set(el, { orig: orig, applied: out }); el.setAttribute('placeholder', out);
+    var out = tr[idx(cur)]; pstore.set(el, { orig: orig, applied: out }); if (el.getAttribute('placeholder') !== out) el.setAttribute('placeholder', out);
   }
   function walk(root) {
     busy = true;
