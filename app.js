@@ -8,7 +8,7 @@ const safeImageUrl = (value) => {
   try { const u = new URL(value); return u.protocol === 'https:' ? escapeHtml(u.href) : ''; }
   catch { return ''; }
 };
-const api = (p, o) => fetch('/api' + p, o).then(async (r) => { const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Error'); return j; });
+const api = (p, o) => fetch('/api' + p, typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? { signal: AbortSignal.timeout(10000), ...o } : o).then(async (r) => { const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Error'); return j; }).catch((e) => { throw (e && (e.name === 'TimeoutError' || e.name === 'AbortError')) ? new Error('Server is slow or offline. Please try again.') : e; });
 const post = (p, b) => api(p, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
 const fileToUri = (f) => new Promise((ok) => { if (!f) return ok(null); const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(f); });
 
@@ -30,7 +30,10 @@ const store = {
 let myDonorId = store.get('bn_myDonor') || null;
 
 // Decorative images delivered through Cloudinary fetch (same cloud as the API).
-const cl = (remoteUrl, w = 600) => `https://res.cloudinary.com/${(cfg && cfg.cloud) || 'demo'}/image/fetch/w_${w},q_auto,f_auto,c_fill/${remoteUrl}`;
+// The shared 'demo' Cloudinary cloud rejects fetch URLs (401), so use the image directly unless a real cloud is configured.
+const cl = (remoteUrl, w = 600) => (cfg && cfg.cloud && cfg.cloud !== 'demo')
+  ? `https://res.cloudinary.com/${cfg.cloud}/image/fetch/w_${w},q_auto,f_auto,c_fill/${remoteUrl}`
+  : `${remoteUrl}?w=${w}&q=70&auto=format&fit=crop`;
 const U = {
   hero: 'https://images.unsplash.com/photo-1615461066841-6116e61058f4',
   doc: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d',
@@ -516,5 +519,5 @@ async function init() {
   if (!welcomed) { welcomed = true; setTimeout(() => toast('Welcome to Blood Network Hyderabad', 'ok'), 600); }
 }
 const hideBoot = () => { const b = document.getElementById('bootLoader'); if (b) { b.style.opacity = '0'; setTimeout(() => b.remove(), 300); } };
-init().then(() => { if (location.hash === '#sos') switchTab('sos'); }).finally(hideBoot);
+init().then(() => { if (location.hash === '#sos') switchTab('sos'); }).catch((e) => toast((e && e.message) || 'Could not load. Please retry.', 'err')).finally(hideBoot);
 setTimeout(hideBoot, 20000);
