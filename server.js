@@ -17,7 +17,7 @@ const GNANI_AUDIO = /^audio\/(wav|x-wav|mpeg|mp3|ogg|flac|aac|m4a)(;.*)?$/;
 function toWavIfNeeded(buf, mime) {
   if (GNANI_AUDIO.test(mime)) return { buf, mime };
   const r = spawnSync('ffmpeg', ['-v', 'error', '-i', 'pipe:0', '-f', 'wav', '-ar', '24000', '-ac', '1', 'pipe:1'], { input: buf, maxBuffer: 32e6 });
-  if (r.status !== 0 || !r.stdout.length) throw new Error('Could not convert ' + mime + ' audio - please use wav/mp3/ogg');
+  if (r.status !== 0 || !r.stdout.length) { const e = new Error('Could not convert ' + mime + ' audio - please use wav/mp3/ogg'); e.status = 400; throw e; }
   return { buf: r.stdout, mime: 'audio/wav' };
 }
 
@@ -57,7 +57,7 @@ const pub = (d) => ({ ...d, reporters: undefined, phone: undefined, idPublicId: 
 
 const STATUS = ['Searching', 'Donor Found', 'Contacted', 'Donation Coordinated', 'Completed'];
 // Accept only a real past/today YYYY-MM-DD date; anything else counts as 'never donated'.
-const validDate = (v) => { const s = String(v || ''); const t = Date.parse(s); return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(t) && t <= Date.now() ? s : null; };
+const validDate = (v) => { const s = String(v || ''); const t = Date.parse(s); return /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(t) && t <= Date.now() && new Date(t).toISOString().slice(0, 10) === s ? s : null; }; // round-trip check: V8 silently normalizes impossible dates like 2026-02-30
 const today = () => new Date().toISOString().slice(0, 10);
 const find = (arr, id) => arr.find((x) => x.id === id);
 const log = (r, text) => r.timeline.push({ at: new Date().toISOString(), text });
@@ -78,7 +78,10 @@ function escalate(r) {
   const km = lib.radiusFor(r.urgency, r.stage);
   const n = alertDonors(r, Math.max(3, r.units * 3));
   log(r, `No donor accepted in time: search widened to ${km} km, ${n} more donors alerted.`);
-  const banks = lib.BANKS.filter((b) => lib.haversineKm(r.coords, lib.AREAS[b.area]) <= km);
+  // Real govt directory (149 banks with coordinates); the 4 hardcoded demo banks are only a fallback when the directory failed to load.
+  const banks = BANKS.length
+    ? BANKS.filter((b) => b.lat != null && b.lng != null && lib.haversineKm(r.coords, [b.lat, b.lng]) <= km)
+    : lib.BANKS.filter((b) => lib.haversineKm(r.coords, lib.AREAS[b.area]) <= km);
   banks.forEach((b) => { if (!r.bankAlerts.includes(b.name)) { r.bankAlerts.push(b.name); log(r, `Blood bank alerted: ${b.name}`); } });
   save();
 }
@@ -120,10 +123,14 @@ async function api(req, res, url) {
     if (audio.length > 8e6) return send(res, 400, { error: 'Audio too large (max ~6 MB)' });
     const mime = /^audio\/(wav|x-wav|mpeg|mp3|ogg|flac|aac|m4a|mp4|webm)(;.*)?$/.test(b.mimeType || '') ? b.mimeType : 'audio/wav';
     const conv = toWavIfNeeded(audio, mime);
-    const transcript = await gnani.stt(conv.buf, conv.mime, b.language || undefined);
+    let transcript;
+    try { transcript = await gnani.stt(conv.buf, conv.mime, b.language || undefined); }
+    catch (e) { console.error('Gnani STT:', e.message); return send(res, 502, { error: 'Voice transcription failed - please try again or type your request' }); }
     const { intent, matches } = understand(transcript);
     const replyText = vp.buildReply(intent, matches);
-    const wav = await gnani.tts(replyText, b.language || undefined);
+    let wav;
+    try { wav = await gnani.tts(replyText, b.language || undefined); }
+    catch (e) { console.error('Gnani TTS:', e.message); return send(res, 502, { error: 'Voice reply failed - please try again or type your request' }); }
     return send(res, 200, {
       transcript, intent, replyText,
       matches: matches.map((x) => ({ name: x.donor.name, bloodGroup: x.donor.bloodGroup, area: x.donor.area, km: x.km, score: x.score })),
@@ -163,6 +170,7 @@ async function api(req, res, url) {
     const d = { id: uid('D'), name: sec.clamp(b.name, 60), phone: b.phone, bloodGroup: b.bloodGroup, area: b.area, coords: lib.AREAS[b.area],
       lastDonation: validDate(b.lastDonation), available: true, verified: false, flagged: false, reports: 0, idPublicId: null, idUrl: null, alerts: [] };
     if (b.idImage) { const u = await cl.upload(b.idImage, 'blood-network/donor-ids'); d.idPublicId = u.public_id; d.idUrl = null; d.verified = Boolean(u.public_id); }
+    if (db.donors.some((x) => x.phone === b.phone)) return send(res, 409, { error: 'This phone number is already registered as a donor' }); // re-check after the async upload (race)
     db.donors.push(d); save();
     return send(res, 201, pub(d));
   }
@@ -174,8 +182,8 @@ async function api(req, res, url) {
       units: Math.min(10, Math.max(1, Math.floor(+b.units) || 1)), urgency: ['critical', 'urgent', 'normal'].includes(b.urgency) ? b.urgency : 'urgent', area: b.area, coords: lib.AREAS[b.area],
       hospital: sec.clamp(b.hospital, 100), note: sec.clamp(b.note, 300), status: 'Searching', createdAt: new Date().toISOString(), stage: 0, lastEscalationAt: null,
       alerted: [], accepted: [], bankAlerts: [], messages: [], timeline: [], flags: [], reports: 0, reportPublicId: null, reportUrl: null };
-    r.flags = lib.fraudFlags(r, db.requests);
     if (b.reportImage) { const u = await cl.upload(b.reportImage, 'blood-network/medical-reports'); r.reportPublicId = u.public_id; r.reportUrl = null; }
+    r.flags = lib.fraudFlags(r, db.requests); // after the async upload, so a parallel duplicate request is visible (race)
     if (r.flags.length) { r.status = 'Flagged'; log(r, 'Held for review, no alerts sent: ' + r.flags.join('; ')); }
     else {
       const n = alertDonors(r, Math.max(3, r.units * 2));
