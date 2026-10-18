@@ -4,11 +4,16 @@ const assert = require('node:assert');
 const { spawn } = require('node:child_process');
 const os = require('node:os');
 const path = require('node:path');
+const fs = require('node:fs');
 let proc, base;
 const port = 3100 + Math.floor(Math.random() * 500);
 
 test.before(async () => {
-  const env = { ...process.env, PORT: String(port), DATA_FILE: path.join(os.tmpdir(), 'bn-test-' + port + '.json') };
+  const dataFile = path.join(os.tmpdir(), 'bn-test-' + port + '.json');
+  const makeDonor = (id, name, phone, bloodGroup, area) => ({ id, name, phone, bloodGroup, area, coords: [17.4401, 78.3489], lastDonation: null, available: true, verified: false, flagged: false, reports: 0, idPublicId: null, idUrl: null, alerts: [] });
+  const testDonors = [makeDonor('D-100', 'Rahul', '9848010001', 'O-', 'Gachibowli'), ...['D-D2EE6', 'D-I7G25', 'D-F0KUQ', 'D-IVW9P'].map((id) => makeDonor(id, 'Probe', '9848010000', 'A+', 'Gachibowli'))];
+  fs.writeFileSync(dataFile, JSON.stringify({ donors: testDonors, requests: [] }));
+  const env = { ...process.env, PORT: String(port), DATA_FILE: dataFile, ADMIN_DELETE_SECRET: 'test-only-admin-secret' };
   delete env.UPSTASH_REDIS_REST_URL; delete env.UPSTASH_REDIS_REST_TOKEN; delete env.RESEND_API_KEY;
   proc = spawn('node', ['server.js'], { env, stdio: 'ignore' });
   base = 'http://localhost:' + port;
@@ -18,6 +23,21 @@ test.before(async () => {
 test.after(() => proc && proc.kill());
 
 const post = (p, b) => fetch(base + p, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
+
+
+test('admin cleanup is secret-protected and deletes only the four exact Probe test donors', async () => {
+  const before = await (await fetch(base + '/api/donors')).json();
+  assert.strictEqual(before.length, 5);
+  const denied = await fetch(base + '/api/admin/cleanup-probe-donors', { method: 'POST', headers: { 'x-admin-secret': 'wrong-secret' } });
+  assert.strictEqual(denied.status, 401);
+  assert.strictEqual((await (await fetch(base + '/api/donors')).json()).length, 5);
+  const result = await fetch(base + '/api/admin/cleanup-probe-donors', { method: 'POST', headers: { 'x-admin-secret': 'test-only-admin-secret' } });
+  assert.strictEqual(result.status, 200);
+  assert.deepStrictEqual(await result.json(), { deletedCount: 4, remainingDonors: 1 });
+  assert.deepStrictEqual((await (await fetch(base + '/api/donors')).json()).map((d) => d.id), ['D-100']);
+  const repeated = await fetch(base + '/api/admin/cleanup-probe-donors', { method: 'POST', headers: { 'x-admin-secret': 'test-only-admin-secret' } });
+  assert.deepStrictEqual(await repeated.json(), { deletedCount: 0, remainingDonors: 1 });
+});
 
 test('home and 404', async () => {
   assert.strictEqual((await fetch(base + '/')).status, 200);
