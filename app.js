@@ -472,8 +472,26 @@ function renderAll() {
   document.querySelectorAll('.navBtn').forEach((x) => x.classList.toggle('nav-active', x.dataset.tab === activeTab));
 }
 
+// Real govt blood bank directory (static data, directory only).
+let bbDistricts = [];
+async function loadBanks() {
+  try {
+    const d = $('bbDistrict').value, q = $('bbSearch').value.trim();
+    const r = await api('/blood-banks?district=' + encodeURIComponent(d) + '&q=' + encodeURIComponent(q));
+    if (!bbDistricts.length) {
+      bbDistricts = r.districts;
+      $('bbDistrict').innerHTML = '<option value="">All districts</option>' + r.districts.map((x) => '<option value="' + esc(x) + '"' + (x === 'Hyderabad' ? ' selected' : '') + '>' + esc(x) + '</option>').join('');
+      return loadBanks();
+    }
+    $('bbCount').textContent = r.total + ' found' + (r.total > r.banks.length ? ' (showing ' + r.banks.length + ')' : '');
+    $('bbList').innerHTML = r.banks.map((b) => '<div class="border border-gray-100 rounded-2xl p-3"><div class="font-extrabold text-[13px]">' + esc(b.name) + '</div><div class="text-[11.5px] text-gray-600 font-medium mt-0.5">' + esc([b.address, b.pincode].filter(Boolean).join(', ')) + '</div><div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] font-bold">' + (b.category ? '<span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">' + esc(b.category) + '</span>' : '') + (b.service ? '<span class="bg-green-50 text-green-700 px-2 py-0.5 rounded-full">' + esc(b.service) + '</span>' : '') + (b.phone ? '<a class="text-primary underline" href="tel:' + esc(b.phone.replace(/[^0-9+]/g, '')) + '">' + esc(b.phone) + '</a>' : '<span class="text-gray-500">No number listed</span>') + '</div></div>').join('') || '<div class="text-center text-[13px] text-gray-500 font-semibold py-4">No blood banks match.</div>';
+  } catch (e) { $('bbCount').textContent = ''; $('bbList').innerHTML = '<div class="text-[12px] text-gray-500 font-semibold">Directory could not load. Try again later.</div>'; }
+}
 async function init() {
   cfg = await api('/config');
+  loadBanks();
+  $('bbDistrict').onchange = loadBanks;
+  let bbT; $('bbSearch').oninput = () => { clearTimeout(bbT); bbT = setTimeout(loadBanks, 250); };
   await refreshAll();
   if (myDonorId && !donors.some((d) => d.id === myDonorId)) { myDonorId = null; store.set('bn_myDonor', ''); }
   bindActions();

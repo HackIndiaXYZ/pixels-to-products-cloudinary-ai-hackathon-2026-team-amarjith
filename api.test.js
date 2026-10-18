@@ -104,3 +104,23 @@ test('one client cannot auto-flag with repeat reports; two clients can', async (
   assert.strictEqual(b.flagged, true);
   assert.ok(!JSON.stringify(await (await fetch(base + '/api/donors')).json()).includes('reporters'));
 });
+
+test('blood bank directory: static govt data, filters, no personal fields', async () => {
+  const all = await (await fetch(base + '/api/blood-banks')).json();
+  assert.ok(all.total >= 100);
+  assert.ok(all.banks.length <= 50);
+  assert.ok(/not live stock/i.test(all.source));
+  assert.ok(all.districts.includes('Hyderabad'));
+  const hyd = await (await fetch(base + '/api/blood-banks?district=Hyderabad')).json();
+  assert.ok(hyd.total > 0 && hyd.banks.every((b) => b.district === 'Hyderabad'));
+  const q = await (await fetch(base + '/api/blood-banks?q=' + encodeURIComponent('aarohi'))).json();
+  assert.ok(q.banks.some((b) => /aarohi/i.test(b.name)));
+  assert.ok(!JSON.stringify(all).match(/nodal|@/i), 'no officer names or emails');
+  const none = await (await fetch(base + '/api/blood-banks?q=zzzznomatch')).json();
+  assert.strictEqual(none.total, 0);
+});
+test('blood bank data file: Telangana only, coordinates inside Telangana', () => {
+  const d = require('./data/telangana-blood-banks.json');
+  assert.ok(d.length > 100 && d.every((b) => b.name && b.district));
+  assert.ok(d.every((b) => b.lat === null || (b.lat > 15.5 && b.lat < 19.95 && b.lng > 77 && b.lng < 81.8)));
+});

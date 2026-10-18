@@ -3,6 +3,13 @@
 // NOTE: translations are first drafts and should be reviewed by native speakers.
 (function () {
   var D = {
+    'Real blood banks (govt directory)': ['असली ब्लड बैंक (सरकारी डायरेक्टरी)', 'నిజమైన రక్త నిధులు (ప్రభుత్వ డైరెక్టరీ)'],
+    'Directory only, not live stock. Official govt open data (data.gov.in), may be outdated. Please call to confirm before you go. These are blood bank numbers, donor and patient numbers stay masked.': ['सिर्फ डायरेक्टरी, लाइव स्टॉक नहीं। सरकारी ओपन डेटा (data.gov.in), पुराना हो सकता है। जाने से पहले कॉल करके पुष्टि करें। ये ब्लड बैंक के नंबर हैं, डोनर और मरीज़ के नंबर छिपे रहते हैं।', 'కేవలం డైరెక్టరీ, లైవ్ స్టాక్ కాదు. ప్రభుత్వ ఓపెన్ డేటా (data.gov.in), పాతది కావచ్చు. వెళ్ళే ముందు కాల్ చేసి నిర్ధారించుకోండి. ఇవి రక్త నిధి నంబర్లు, దాత మరియు రోగి నంబర్లు దాచబడతాయి.'],
+    'Check live stock on e-RaktKosh': ['e-RaktKosh पर लाइव स्टॉक देखें', 'e-RaktKoshలో లైవ్ స్టాక్ చూడండి'],
+    'All districts': ['सभी जिले', 'అన్ని జిల్లాలు'],
+    'No blood banks match.': ['कोई ब्लड बैंक नहीं मिला।', 'రక్త నిధులు ఏవీ దొరకలేదు.'],
+    'No number listed': ['नंबर उपलब्ध नहीं', 'నంబర్ లేదు'],
+    'Directory could not load. Try again later.': ['डायरेक्टरी लोड नहीं हुई। बाद में फिर कोशिश करें।', 'డైరెక్టరీ లోడ్ కాలేదు. తర్వాత మళ్ళీ ప్రయత్నించండి.'],
     // Added later: draft translations for strings that were still English (not native-reviewed).
     'Skip to content': ['सामग्री पर जाएँ', 'కంటెంట్‌కు వెళ్ళండి'],
     'ABO • Distance • Cooldown matching': ['ABO • दूरी • कूलडाउन मैचिंग', 'ABO • దూరం • కూల్‌డౌన్ మ్యాచింగ్'],
@@ -140,6 +147,7 @@
     'Phone masked • Chat via platform': ['फोन छिपा हुआ • प्लेटफ़ॉर्म से चैट', 'ఫోన్ మాస్క్ • ప్లాట్‌ఫామ్ ద్వారా చాట్']
   };
   var P = {
+    'Search name or area': ['नाम या इलाका खोजें', 'పేరు లేదా ప్రాంతం వెతకండి'],
     'e.g., Apollo Hospitals, Jubilee Hills': ['जैसे, अपोलो हॉस्पिटल, जुबली हिल्स', 'ఉదా., అపోలో హాస్పిటల్స్, జూబ్లీ హిల్స్'],
     'Ward / doctor / attender info. Never mention money.': ['वार्ड / डॉक्टर / अटेंडर की जानकारी। पैसे की बात कभी न लिखें।', 'వార్డ్ / డాక్టర్ / అటెండర్ వివరాలు. డబ్బు గురించి ఎప్పుడూ రాయవద్దు.'],
     'What happened? e.g., asked for ₹2000…': ['क्या हुआ? जैसे, ₹2000 माँगे…', 'ఏమైంది? ఉదా., ₹2000 అడిగారు…'],
@@ -156,10 +164,11 @@
   // Strings with a number inside: matched by pattern, number kept as is.
   var DYN = [
     [/^Cooldown (\d+)d$/, function (n) { return ['कूलडाउन ' + n + ' दिन', 'కూల్‌డౌన్ ' + n + ' రోజులు']; }],
+    [/^(\d+) found(?: \(showing (\d+)\))?$/, function (n, k) { return [n + ' मिले' + (k ? ' (' + k + ' दिख रहे)' : ''), n + ' దొరికాయి' + (k ? ' (' + k + ' చూపబడుతున్నాయి)' : '')]; }],
     [/^(\d+) shown$/, function (n) { return [n + ' दिख रहे', n + ' చూపబడుతున్నాయి']; }]
   ];
   function dyn(key) {
-    for (var i = 0; i < DYN.length; i++) { var m = key.match(DYN[i][0]); if (m) return DYN[i][1](m[1]); }
+    for (var i = 0; i < DYN.length; i++) { var m = key.match(DYN[i][0]); if (m) return DYN[i][1](m[1], m[2]); }
     return null;
   }
   function tNode(n) {

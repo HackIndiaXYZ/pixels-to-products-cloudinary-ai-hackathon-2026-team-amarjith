@@ -23,6 +23,9 @@ function toWavIfNeeded(buf, mime) {
 
 const PORT = process.env.PORT || 3000;
 const DB_FILE = process.env.DATA_FILE || path.join(__dirname, 'data.json');
+// Static, read-only government directory (data.gov.in, GODL-India). Directory only - never stock.
+let BANKS = [];
+try { BANKS = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'telangana-blood-banks.json'), 'utf8')); } catch (e) { console.error('Blood bank directory not loaded:', e.message); }
 let db = fs.existsSync(DB_FILE) ? JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) : seed();
 // Always write the local file too; also write to Upstash Redis when it is configured (survives Render restarts).
 const save = () => {
@@ -129,6 +132,15 @@ async function api(req, res, url) {
     });
   }
   if (m === 'GET' && p === '/api/config') return send(res, 200, { cloud: cl.CLOUD, live: cl.LIVE, areas: Object.keys(lib.AREAS), groups: lib.GROUPS, components: lib.COMPONENTS, gaps: lib.GAP_DAYS, statuses: STATUS, banks: lib.BANKS, escalationMinutes: lib.ESCALATION_MS / 60000 });
+  if (m === 'GET' && p === '/api/blood-banks') {
+    const district = String(url.searchParams.get('district') || '').toLowerCase().slice(0, 40);
+    const q = String(url.searchParams.get('q') || '').toLowerCase().slice(0, 60);
+    const list = BANKS.filter((b) => (!district || b.district.toLowerCase() === district) && (!q || (b.name + ' ' + b.city + ' ' + b.address + ' ' + (b.pincode || '')).toLowerCase().includes(q)));
+    return send(res, 200, {
+      source: 'Government of India Blood Bank Directory (data.gov.in, GODL-India). Directory only, not live stock. Call to confirm.',
+      districts: [...new Set(BANKS.map((b) => b.district))].sort(), total: list.length, banks: list.slice(0, 50),
+    });
+  }
   if (m === 'GET' && p === '/api/donors') return send(res, 200, db.donors.map(pub));
   if (m === 'POST' && p === '/api/admin/cleanup-probe-donors') {
     const expected = process.env.ADMIN_DELETE_SECRET;
