@@ -130,6 +130,20 @@ async function api(req, res, url) {
   }
   if (m === 'GET' && p === '/api/config') return send(res, 200, { cloud: cl.CLOUD, live: cl.LIVE, areas: Object.keys(lib.AREAS), groups: lib.GROUPS, components: lib.COMPONENTS, gaps: lib.GAP_DAYS, statuses: STATUS, banks: lib.BANKS, escalationMinutes: lib.ESCALATION_MS / 60000 });
   if (m === 'GET' && p === '/api/donors') return send(res, 200, db.donors.map(pub));
+  if (m === 'POST' && p === '/api/admin/cleanup-probe-donors') {
+    const expected = process.env.ADMIN_DELETE_SECRET;
+    if (!expected) return send(res, 503, { error: 'Admin cleanup is not configured' });
+    const supplied = String(req.headers['x-admin-secret'] || '');
+    const a = Buffer.from(supplied);
+    const b = Buffer.from(expected);
+    if (a.length !== b.length || !require('crypto').timingSafeEqual(a, b)) return send(res, 401, { error: 'Unauthorized' });
+    const targetIds = new Set(['D-D2EE6', 'D-I7G25', 'D-F0KUQ', 'D-IVW9P']);
+    const before = db.donors.length;
+    db.donors = db.donors.filter((d) => !(targetIds.has(d.id) && d.name === 'Probe' && d.bloodGroup === 'A+' && d.area === 'Gachibowli' && d.phone === '9848010000'));
+    const deletedCount = before - db.donors.length;
+    if (deletedCount) save();
+    return send(res, 200, { deletedCount, remainingDonors: db.donors.length });
+  }
   if (m === 'POST' && p === '/api/donors') {
     const b = await body(req, 12e6);
     if (!sec.clamp(b.name, 60) || !/^\d{10}$/.test(b.phone || '') || !lib.GROUPS.includes(b.bloodGroup) || !lib.AREAS[b.area]) return send(res, 400, { error: 'Name, 10-digit phone, blood group and area are required' });
