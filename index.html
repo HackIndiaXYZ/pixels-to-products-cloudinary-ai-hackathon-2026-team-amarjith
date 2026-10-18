@@ -309,6 +309,18 @@ Find donors now
 <div><h2 class="font-extrabold text-[20px] tracking-tight">Donors</h2><p class="text-[12px] text-gray-500 font-medium">Register • Stay available • Get alerts</p></div>
 <div id="myDonorWrap"></div>
 
+<div id="realBanks" class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card">
+<h3 class="font-extrabold text-[15px]">Real blood banks (govt directory)</h3>
+<p role="note" class="mt-1 text-[11.5px] text-gray-600 font-semibold bg-amber-50 border border-amber-200 rounded-xl p-2.5">Directory only, not live stock. Official govt open data (data.gov.in), may be outdated. Please call to confirm before you go. These are blood bank numbers, donor and patient numbers stay masked.</p>
+<div class="mt-3 grid grid-cols-2 gap-2">
+<select id="bbDistrict" aria-label="District" class="w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold bg-white"></select>
+<input id="bbSearch" aria-label="Search blood banks" placeholder="Search name or area" class="w-full border-2 border-gray-100 rounded-2xl px-3 py-2.5 text-[13px] font-semibold placeholder:text-gray-500">
+</div>
+<div id="bbCount" class="mt-2 text-[11px] font-extrabold text-gray-600"></div>
+<div id="bbList" class="mt-2 space-y-2"></div>
+<a href="https://eraktkosh.mohfw.gov.in/BLDAHIMS/bloodbank/nearbyBBRed.cnt" target="_blank" rel="noopener noreferrer" class="mt-3 block text-center text-[12px] font-extrabold text-primary underline">Check live stock on e-RaktKosh</a>
+</div>
+
 <div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card">
 <h3 class="font-extrabold text-[15px]">Cooldown & eligibility</h3>
 <div class="mt-3 grid grid-cols-3 gap-2">
