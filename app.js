@@ -157,16 +157,28 @@ async function submitSOS() {
 
 /* ================= HOSPITAL PRE-ALERT (simulated) ================= */
 const PA_CONDITIONS = ['Accident / trauma', 'Surgery planned', 'Delivery / pregnancy', 'Anaemia / thalassemia', 'Cancer treatment', 'Dengue / low platelets', 'Other'];
+const paSel = {}; // chosen facility index per request (client-side only)
+const PA_BRING = ['Patient ID or Aadhaar copy', "Doctor's slip / blood requisition form", 'Previous blood group report, if any', 'Attender phone number', 'Replacement donor details, if the bank asks'];
+function paFacilities(r) { const p = r.preAlert; return p && p.facility ? [p.facility, ...(p.alternatives || [])] : []; }
 function preAlertCard(r) {
-  const p = r.preAlert; if (!p || !p.facility) return '';
-  const f = p.facility;
-  const alts = (p.alternatives || []).map((x) => `<li>${esc(x.name)}, ${esc(x.city || x.district)} (${x.km} km)</li>`).join('');
+  const list = paFacilities(r); if (!list.length) return '';
+  const sel = Math.min(paSel[r.id] || 0, list.length - 1), f = list[sel];
+  const tabs = list.map((x, i) => `<button data-action="pa-pick" data-req="${esc(r.id)}" data-i="${i}" class="text-left rounded-xl border-2 px-3 py-2 ${i === sel ? 'border-primary bg-primaryLight' : 'border-gray-100 bg-white'}"><div class="text-[12px] font-extrabold leading-tight">${i === 0 ? '★ Best match: ' : 'Option ' + (i + 1) + ': '}${esc(x.name)}</div><div class="text-[11px] text-gray-600 font-semibold">${esc(x.city || x.district)} • ${x.km} km</div></button>`).join('');
+  const dir = f.lat != null ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(f.lat + ',' + f.lng)}" target="_blank" rel="noopener" class="bg-gray-900 text-white font-extrabold text-[12.5px] py-2.5 rounded-xl text-center">Directions</a>` : '';
+  const call = f.phone ? `<a href="tel:${esc(f.phone.replace(/[^0-9+]/g, ''))}" class="bg-primary text-white font-extrabold text-[12.5px] py-2.5 rounded-xl text-center">Call ${esc(f.phone)}</a>` : '<span class="bg-gray-100 text-gray-500 font-extrabold text-[12px] py-2.5 rounded-xl text-center">No number listed</span>';
+  const shareTxt = `Blood needed: ${r.bloodGroup} ${r.component}, ${r.units} unit(s), ${r.urgency}.\nSuggested blood bank: ${f.name}, ${[f.address, f.city].filter(Boolean).join(', ')}${f.phone ? '\nPhone: ' + f.phone : ''}\n(Blood Network demo suggestion. Please confirm with the bank directly.)`;
   return `<div id="preAlertBox" data-req="${esc(r.id)}" class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card"><div class="flex items-center justify-between"><h3 class="font-extrabold text-[15px]">Hospital pre-alert</h3><span class="text-[10px] font-black text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full">SIMULATED</span></div>
-<div class="mt-2 text-[13px] font-extrabold">${esc(f.name)}</div><div class="text-[11.5px] text-gray-600 font-medium">${esc([f.address, f.city, f.district].filter(Boolean).join(', '))}</div>
-<div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] font-bold">${(f.reasons || []).map((x) => `<span class="bg-green-50 text-green-700 px-2 py-0.5 rounded-full">${esc(x)}</span>`).join('')}${f.phone ? `<a class="text-primary underline" href="tel:${esc(f.phone.replace(/[^0-9+]/g, ''))}">${esc(f.phone)}</a>` : ''}</div>
-${alts ? `<div class="mt-2 text-[11px] text-gray-500 font-semibold">Other options:</div><ul class="text-[11.5px] text-gray-700 font-medium list-disc pl-5">${alts}</ul>` : ''}
-<div id="preAlertPrivate" class="mt-2"></div>
-<p class="mt-2 text-[11px] text-gray-500 font-medium">${esc(p.note)}</p></div>`;
+<div class="mt-2 bg-primaryLight border border-red-100 rounded-2xl p-3 text-[12px] text-red-900 font-semibold leading-snug"><b>What is this?</b> Where should the patient go so the right place is ready?<br>1. We pick the nearest suitable blood bank.<br>2. We prepare a pre-arrival card with the patient details you gave.<br>3. You call or navigate there yourself. <b>No message is sent to the bank by this app.</b></div>
+<div class="mt-3 text-[11px] font-black text-gray-500 uppercase tracking-wide">Choose where to go</div>
+<div class="mt-1.5 grid gap-2">${tabs}</div>
+<div class="mt-3 rounded-2xl border border-gray-100 p-3"><div class="text-[13px] font-extrabold">${esc(f.name)}</div><div class="text-[11.5px] text-gray-600 font-medium">${esc([f.address, f.city, f.district].filter(Boolean).join(', '))}</div>
+<div class="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-bold">${(f.reasons || []).map((x) => `<span class="bg-green-50 text-green-700 px-2 py-0.5 rounded-full">${esc(x)}</span>`).join('')}</div>
+<div class="mt-2.5 grid grid-cols-2 gap-2">${call}${dir}</div>
+<a href="https://wa.me/?text=${encodeURIComponent(shareTxt)}" target="_blank" rel="noopener" class="mt-2 block bg-[#25D366] text-white font-extrabold text-[12.5px] py-2.5 rounded-xl text-center">Share this suggestion on WhatsApp</a>
+<div class="mt-1 text-[10.5px] text-gray-500 font-medium">The share text has no medical details.</div></div>
+<details class="mt-3"><summary class="text-[12px] font-extrabold text-gray-700 cursor-pointer">What to carry (checklist)</summary><ul class="mt-1.5 text-[12px] text-gray-700 font-medium space-y-1">${PA_BRING.map((x) => `<li>☐ ${esc(x)}</li>`).join('')}</ul><p class="mt-1 text-[10.5px] text-gray-500 font-medium">General suggestions only. Ask the blood bank what it needs.</p></details>
+<div id="preAlertPrivate" class="mt-3"></div>
+<p class="mt-2 text-[11px] text-gray-500 font-medium">${esc(r.preAlert.note)} Ranking uses distance and listed service hours only.</p></div>`;
 }
 async function loadPreAlertPrivate(r) {
   const box = document.getElementById('preAlertPrivate'); if (!box || !r.hasPreAlert) return;
@@ -176,7 +188,7 @@ async function loadPreAlertPrivate(r) {
     const c = await api('/requests/' + encodeURIComponent(r.id) + '/pre-alert', { headers: { 'x-pre-alert-token': tok } });
     const m = c.medical || {};
     const line = (k, v) => v ? `<div><b>${k}:</b> ${esc(v)}</div>` : '';
-    box.innerHTML = `<div class="bg-gray-50 border border-gray-100 rounded-2xl p-3 text-[12px] font-semibold text-gray-800"><div class="font-extrabold text-[12px] mb-1">Pre-arrival card (private)</div>${line('Patient', c.patient)}${line('Need', c.bloodGroup + ' ' + c.component + ', ' + c.units + ' unit(s), ' + c.urgency)}${line('Condition', m.condition)}${line('Allergies', m.allergies)}${line('Medicines', m.medications)}${line('Area', c.area)}</div>`;
+    box.innerHTML = `<div class="bg-gray-50 border border-gray-100 rounded-2xl p-3 text-[12px] font-semibold text-gray-800"><div class="font-extrabold text-[12px] mb-1">Pre-arrival card - what a facility would see (private to you)</div>${line('Patient', c.patient)}${line('Need', c.bloodGroup + ' ' + c.component + ', ' + c.units + ' unit(s), ' + c.urgency)}${line('Condition', m.condition)}${line('Allergies', m.allergies)}${line('Medicines', m.medications)}${line('Area', c.area)}</div>`;
   } catch { box.innerHTML = ''; }
 }
 
@@ -480,6 +492,7 @@ function bindActions() {
     else if (a === 'clear-req') doAction(async () => { await post(`/requests/${b.dataset.id}/clear`, {}); await refreshRequests(); renderAll(); toast('Request cleared - matching resumed', 'good'); });
     else if (a === 'new-sos') { activeRequestId = null; renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     else if (a === 'view-req') { activeRequestId = b.dataset.id; renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    else if (a === 'pa-pick') { paSel[b.dataset.req] = +b.dataset.i || 0; renderSOS(); }
     else if (a === 'copy-id') { if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.id); toast('ID copied: ' + b.dataset.id); }
     else if (a === 'inbox-accept') doAction(async () => { await post(`/requests/${b.dataset.id}/accept`, { donorId: b.dataset.donor }); await refreshRequests(); await loadAlerts(); renderAll(); toast('Accepted - patient notified', 'good'); });
     else if (a === 'dir-filter') { dirFilter = b.dataset.f; renderDonors(); }

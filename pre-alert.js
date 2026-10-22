@@ -18,7 +18,7 @@ function pickFacilities(r, banks) {
     if (urgent) { if (/24/.test(String(b.service || ''))) { reasons.push('24x7 service listed'); rank -= 2; } else rank += 3; }
     return { b, km, rank, reasons };
   }).sort((x, y) => x.rank - y.rank || x.b.name.localeCompare(y.b.name));
-  const view = (x) => ({ name: x.b.name, category: x.b.category || null, district: x.b.district, city: x.b.city, address: x.b.address, phone: x.b.phone || null, km: x.km, reasons: x.reasons });
+  const view = (x) => ({ name: x.b.name, category: x.b.category || null, district: x.b.district, city: x.b.city, address: x.b.address, phone: x.b.phone || null, km: x.km, lat: x.b.lat, lng: x.b.lng, reasons: x.reasons });
   return { best: rows[0] ? view(rows[0]) : null, alternatives: rows.slice(1, 1 + MAX_ALTERNATIVES).map(view) };
 }
 

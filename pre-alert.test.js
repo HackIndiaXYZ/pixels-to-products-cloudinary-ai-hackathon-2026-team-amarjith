@@ -94,3 +94,8 @@ test('UI has the optional pre-alert section and simulated wording', async () => 
   const html = await (await fetch(base + '/')).text();
   assert.ok(html.includes('id="paBox"') && /simulated/i.test(html));
 });
+test('facility views carry coordinates for directions and stay within the 3 option cap', () => {
+  const { best, alternatives } = pa.pickFacilities(req(), banks);
+  assert.ok(typeof best.lat === 'number' && typeof best.lng === 'number');
+  assert.ok(alternatives.length <= 2);
+});
