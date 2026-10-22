@@ -129,6 +129,7 @@ function renderSosForm() {
   $('unitsVal').textContent = units;
   const areas = ((cfg && cfg.areas) || []).map((a) => `<option>${esc(a)}</option>`).join('');
   if (!$('f_area').options.length) { $('f_area').innerHTML = areas; $('r_area').innerHTML = areas; }
+  if ($('pa_condition') && $('pa_condition').options.length < 2) $('pa_condition').innerHTML += PA_CONDITIONS.map((c) => `<option>${esc(c)}</option>`).join('');
   $('hospList').innerHTML = HOSPITALS.map((h) => `<option value="${esc(h)}">`).join('');
   $('regBlood').innerHTML = groups.map((g) => `<button data-rbg="${g}" class="rbgBtn py-2 rounded-xl font-black text-[12px] border-2 ${g === regBlood ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-100 text-gray-700'}">${g}</button>`).join('');
 }
@@ -139,7 +140,11 @@ async function submitSOS() {
   if (!/^\d{10}$/.test(phone)) { toast('Enter a 10-digit contact number', 'err'); $('f_phone').focus(); return; }
   const btn = $('sosSubmit'); btn.disabled = true;
   try {
-    const r = await post('/requests', { patient, phone, bloodGroup: selBlood, component: selNeed, units, area: $('f_area').value, urgency: selUrg, hospital, note, reportImage: await fileToUri($('f_file').files[0]) });
+    const pa = { condition: $('pa_condition').value, allergies: $('pa_allergies').value, medications: $('pa_meds').value, consent: $('pa_consent').checked };
+    const wantsPA = pa.consent && (pa.condition || pa.allergies.trim() || pa.medications.trim());
+    if (!pa.consent && (pa.condition || pa.allergies.trim() || pa.medications.trim())) { toast('Tick the consent box to prepare the pre-arrival card, or clear those fields', 'err'); return void (btn.disabled = false); }
+    const r = await post('/requests', { patient, phone, bloodGroup: selBlood, component: selNeed, units, area: $('f_area').value, urgency: selUrg, hospital, note, reportImage: await fileToUri($('f_file').files[0]), ...(wantsPA ? { patientProfile: pa } : {}) });
+    if (r.preAlertToken) { try { localStorage.setItem('bn_pa_' + r.id, r.preAlertToken); } catch {} }
     activeRequestId = r.id;
     await refreshRequests();
     renderAll();
@@ -148,6 +153,31 @@ async function submitSOS() {
     setTimeout(() => { const el = $('activeRequestWrap'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
   } catch (e) { toast(e.message, 'err'); }
   btn.disabled = false;
+}
+
+/* ================= HOSPITAL PRE-ALERT (simulated) ================= */
+const PA_CONDITIONS = ['Accident / trauma', 'Surgery planned', 'Delivery / pregnancy', 'Anaemia / thalassemia', 'Cancer treatment', 'Dengue / low platelets', 'Other'];
+function preAlertCard(r) {
+  const p = r.preAlert; if (!p || !p.facility) return '';
+  const f = p.facility;
+  const alts = (p.alternatives || []).map((x) => `<li>${esc(x.name)}, ${esc(x.city || x.district)} (${x.km} km)</li>`).join('');
+  return `<div id="preAlertBox" data-req="${esc(r.id)}" class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card"><div class="flex items-center justify-between"><h3 class="font-extrabold text-[15px]">Hospital pre-alert</h3><span class="text-[10px] font-black text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full">SIMULATED</span></div>
+<div class="mt-2 text-[13px] font-extrabold">${esc(f.name)}</div><div class="text-[11.5px] text-gray-600 font-medium">${esc([f.address, f.city, f.district].filter(Boolean).join(', '))}</div>
+<div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] font-bold">${(f.reasons || []).map((x) => `<span class="bg-green-50 text-green-700 px-2 py-0.5 rounded-full">${esc(x)}</span>`).join('')}${f.phone ? `<a class="text-primary underline" href="tel:${esc(f.phone.replace(/[^0-9+]/g, ''))}">${esc(f.phone)}</a>` : ''}</div>
+${alts ? `<div class="mt-2 text-[11px] text-gray-500 font-semibold">Other options:</div><ul class="text-[11.5px] text-gray-700 font-medium list-disc pl-5">${alts}</ul>` : ''}
+<div id="preAlertPrivate" class="mt-2"></div>
+<p class="mt-2 text-[11px] text-gray-500 font-medium">${esc(p.note)}</p></div>`;
+}
+async function loadPreAlertPrivate(r) {
+  const box = document.getElementById('preAlertPrivate'); if (!box || !r.hasPreAlert) return;
+  let tok = null; try { tok = localStorage.getItem('bn_pa_' + r.id); } catch {}
+  if (!tok) { box.innerHTML = '<div class="text-[11px] text-gray-500 font-medium">Patient details are private to the device that created this SOS.</div>'; return; }
+  try {
+    const c = await api('/requests/' + encodeURIComponent(r.id) + '/pre-alert', { headers: { 'x-pre-alert-token': tok } });
+    const m = c.medical || {};
+    const line = (k, v) => v ? `<div><b>${k}:</b> ${esc(v)}</div>` : '';
+    box.innerHTML = `<div class="bg-gray-50 border border-gray-100 rounded-2xl p-3 text-[12px] font-semibold text-gray-800"><div class="font-extrabold text-[12px] mb-1">Pre-arrival card (private)</div>${line('Patient', c.patient)}${line('Need', c.bloodGroup + ' ' + c.component + ', ' + c.units + ' unit(s), ' + c.urgency)}${line('Condition', m.condition)}${line('Allergies', m.allergies)}${line('Medicines', m.medications)}${line('Area', c.area)}</div>`;
+  } catch { box.innerHTML = ''; }
 }
 
 /* ================= ACTIVE REQUEST ================= */
@@ -228,6 +258,7 @@ Share on WhatsApp</a>
 <div class="bg-amber-50 border-t border-amber-200 px-4 py-2.5 text-[11px] font-bold text-amber-800 text-center">Donations only at authorized blood banks • Matches are potential matches only</div>
 </div>
 ${cardImg}
+${preAlertCard(r)}
 <div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card">
 <div class="flex items-center justify-between"><h3 class="font-extrabold text-[15px]">Live tracker</h3><span class="text-[11px] font-black text-primary bg-primaryLight px-2.5 py-1 rounded-full">${esc(r.status).toUpperCase()}</span></div>
 <div class="mt-3 flex items-start">${stepsHTML}</div>
@@ -255,7 +286,7 @@ function renderSOS() {
   $('newSosBtn').classList.toggle('hidden', !active);
   const wrap = $('activeRequestWrap');
   if (!active) { wrap.classList.add('hidden'); wrap.innerHTML = ''; }
-  else { wrap.classList.remove('hidden'); wrap.innerHTML = reqCard(active); }
+  else { wrap.classList.remove('hidden'); wrap.innerHTML = reqCard(active); loadPreAlertPrivate(active); }
   const past = requests.filter((q) => q.id !== activeRequestId).slice(0, 5);
   $('pastWrap').classList.toggle('hidden', past.length === 0 && !active);
   $('pastList').innerHTML = past.map((q) => { const u2 = urgStyle(q.urgency); return `<button data-action="view-req" data-id="${esc(q.id)}" class="w-full text-left bg-white border border-gray-100 rounded-2xl p-3 shadow-card flex items-center gap-3 hover:border-red-200 transition">

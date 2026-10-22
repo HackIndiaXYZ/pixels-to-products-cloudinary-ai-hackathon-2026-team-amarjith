@@ -104,3 +104,7 @@ matches donors with the existing matching engine, and speaks the answer back wit
   spoken reply says so. Do not demo with real people's data.
 - Built with AI assistance (Claude) for the Gnani AI Internship Challenge;
   contribution is declared in the project description.
+
+## Hospital pre-alert (optional, simulated)
+
+Inspired by the idea of sharing a patient's profile with the right hospital before arrival. On the SOS form, an optional "Hospital pre-alert" section takes a reason, allergies and medicines (consent box required). The app then picks the best-fit facility from the static Telangana blood bank directory (nearest first, 24x7 and component separation preferred when relevant) and shows a pre-arrival card. **Simulated: no facility is notified, and the directory has no live stock.** Medical details are never in the public request list or donor view; they are returned only with a per-request token kept on the requester's device. Sample data only.
