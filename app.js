@@ -129,6 +129,7 @@ function renderSosForm() {
   $('unitsVal').textContent = units;
   const areas = ((cfg && cfg.areas) || []).map((a) => `<option>${esc(a)}</option>`).join('');
   if (!$('f_area').options.length) { $('f_area').innerHTML = areas; $('r_area').innerHTML = areas; }
+  if ($('pa_condition') && $('pa_condition').options.length < 2) $('pa_condition').innerHTML += PA_CONDITIONS.map((c) => `<option>${esc(c)}</option>`).join('');
   $('hospList').innerHTML = HOSPITALS.map((h) => `<option value="${esc(h)}">`).join('');
   $('regBlood').innerHTML = groups.map((g) => `<button data-rbg="${g}" class="rbgBtn py-2 rounded-xl font-black text-[12px] border-2 ${g === regBlood ? 'bg-gray-900 text-white border-gray-900' : 'bg-white border-gray-100 text-gray-700'}">${g}</button>`).join('');
 }
@@ -139,7 +140,11 @@ async function submitSOS() {
   if (!/^\d{10}$/.test(phone)) { toast('Enter a 10-digit contact number', 'err'); $('f_phone').focus(); return; }
   const btn = $('sosSubmit'); btn.disabled = true;
   try {
-    const r = await post('/requests', { patient, phone, bloodGroup: selBlood, component: selNeed, units, area: $('f_area').value, urgency: selUrg, hospital, note, reportImage: await fileToUri($('f_file').files[0]) });
+    const pa = { condition: $('pa_condition').value, allergies: $('pa_allergies').value, medications: $('pa_meds').value, consent: $('pa_consent').checked };
+    const wantsPA = pa.consent && (pa.condition || pa.allergies.trim() || pa.medications.trim());
+    if (!pa.consent && (pa.condition || pa.allergies.trim() || pa.medications.trim())) { toast('Tick the consent box to prepare the pre-arrival card, or clear those fields', 'err'); return void (btn.disabled = false); }
+    const r = await post('/requests', { patient, phone, bloodGroup: selBlood, component: selNeed, units, area: $('f_area').value, urgency: selUrg, hospital, note, reportImage: await fileToUri($('f_file').files[0]), ...(wantsPA ? { patientProfile: pa } : {}) });
+    if (r.preAlertToken) { try { localStorage.setItem('bn_pa_' + r.id, r.preAlertToken); } catch {} }
     activeRequestId = r.id;
     await refreshRequests();
     renderAll();
@@ -148,6 +153,43 @@ async function submitSOS() {
     setTimeout(() => { const el = $('activeRequestWrap'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
   } catch (e) { toast(e.message, 'err'); }
   btn.disabled = false;
+}
+
+/* ================= HOSPITAL PRE-ALERT (simulated) ================= */
+const PA_CONDITIONS = ['Accident / trauma', 'Surgery planned', 'Delivery / pregnancy', 'Anaemia / thalassemia', 'Cancer treatment', 'Dengue / low platelets', 'Other'];
+const paSel = {}; // chosen facility index per request (client-side only)
+const PA_BRING = ['Patient ID or Aadhaar copy', "Doctor's slip / blood requisition form", 'Previous blood group report, if any', 'Attender phone number', 'Replacement donor details, if the bank asks'];
+function paFacilities(r) { const p = r.preAlert; return p && p.facility ? [p.facility, ...(p.alternatives || [])] : []; }
+function preAlertCard(r) {
+  const list = paFacilities(r); if (!list.length) return '';
+  const sel = Math.min(paSel[r.id] || 0, list.length - 1), f = list[sel];
+  const tabs = list.map((x, i) => `<button data-action="pa-pick" data-req="${esc(r.id)}" data-i="${i}" class="text-left rounded-xl border-2 px-3 py-2 ${i === sel ? 'border-primary bg-primaryLight' : 'border-gray-100 bg-white'}"><div class="text-[12px] font-extrabold leading-tight">${i === 0 ? '★ Best match: ' : 'Option ' + (i + 1) + ': '}${esc(x.name)}</div><div class="text-[11px] text-gray-600 font-semibold">${esc(x.city || x.district)} • ${x.km} km</div></button>`).join('');
+  const dir = f.lat != null ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(f.lat + ',' + f.lng)}" target="_blank" rel="noopener" class="bg-gray-900 text-white font-extrabold text-[12.5px] py-2.5 rounded-xl text-center">Directions</a>` : '';
+  const call = f.phone ? `<a href="tel:${esc(f.phone.replace(/[^0-9+]/g, ''))}" class="bg-primary text-white font-extrabold text-[12.5px] py-2.5 rounded-xl text-center">Call ${esc(f.phone)}</a>` : '<span class="bg-gray-100 text-gray-500 font-extrabold text-[12px] py-2.5 rounded-xl text-center">No number listed</span>';
+  const shareTxt = `Blood needed: ${r.bloodGroup} ${r.component}, ${r.units} unit(s), ${r.urgency}.\nSuggested blood bank: ${f.name}, ${[f.address, f.city].filter(Boolean).join(', ')}${f.phone ? '\nPhone: ' + f.phone : ''}\n(Blood Network demo suggestion. Please confirm with the bank directly.)`;
+  return `<div id="preAlertBox" data-req="${esc(r.id)}" class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card"><div class="flex items-center justify-between"><h3 class="font-extrabold text-[15px]">Hospital pre-alert</h3><span class="text-[10px] font-black text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full">SIMULATED</span></div>
+<div class="mt-2 bg-primaryLight border border-red-100 rounded-2xl p-3 text-[12px] text-red-900 font-semibold leading-snug"><b>What is this?</b> Where should the patient go so the right place is ready?<br>1. We pick the nearest suitable blood bank.<br>2. We prepare a pre-arrival card with the patient details you gave.<br>3. You call or navigate there yourself. <b>No message is sent to the bank by this app.</b></div>
+<div class="mt-3 text-[11px] font-black text-gray-500 uppercase tracking-wide">Choose where to go</div>
+<div class="mt-1.5 grid gap-2">${tabs}</div>
+<div class="mt-3 rounded-2xl border border-gray-100 p-3"><div class="text-[13px] font-extrabold">${esc(f.name)}</div><div class="text-[11.5px] text-gray-600 font-medium">${esc([f.address, f.city, f.district].filter(Boolean).join(', '))}</div>
+<div class="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-bold">${(f.reasons || []).map((x) => `<span class="bg-green-50 text-green-700 px-2 py-0.5 rounded-full">${esc(x)}</span>`).join('')}</div>
+<div class="mt-2.5 grid grid-cols-2 gap-2">${call}${dir}</div>
+<a href="https://wa.me/?text=${encodeURIComponent(shareTxt)}" target="_blank" rel="noopener" class="mt-2 block bg-[#25D366] text-white font-extrabold text-[12.5px] py-2.5 rounded-xl text-center">Share this suggestion on WhatsApp</a>
+<div class="mt-1 text-[10.5px] text-gray-500 font-medium">The share text has no medical details.</div></div>
+<details class="mt-3"><summary class="text-[12px] font-extrabold text-gray-700 cursor-pointer">What to carry (checklist)</summary><ul class="mt-1.5 text-[12px] text-gray-700 font-medium space-y-1">${PA_BRING.map((x) => `<li>☐ ${esc(x)}</li>`).join('')}</ul><p class="mt-1 text-[10.5px] text-gray-500 font-medium">General suggestions only. Ask the blood bank what it needs.</p></details>
+<div id="preAlertPrivate" class="mt-3"></div>
+<p class="mt-2 text-[11px] text-gray-500 font-medium">${esc(r.preAlert.note)} Ranking uses distance and listed service hours only.</p></div>`;
+}
+async function loadPreAlertPrivate(r) {
+  const box = document.getElementById('preAlertPrivate'); if (!box || !r.hasPreAlert) return;
+  let tok = null; try { tok = localStorage.getItem('bn_pa_' + r.id); } catch {}
+  if (!tok) { box.innerHTML = '<div class="text-[11px] text-gray-500 font-medium">Patient details are private to the device that created this SOS.</div>'; return; }
+  try {
+    const c = await api('/requests/' + encodeURIComponent(r.id) + '/pre-alert', { headers: { 'x-pre-alert-token': tok } });
+    const m = c.medical || {};
+    const line = (k, v) => v ? `<div><b>${k}:</b> ${esc(v)}</div>` : '';
+    box.innerHTML = `<div class="bg-gray-50 border border-gray-100 rounded-2xl p-3 text-[12px] font-semibold text-gray-800"><div class="font-extrabold text-[12px] mb-1">Pre-arrival card - what a facility would see (private to you)</div>${line('Patient', c.patient)}${line('Need', c.bloodGroup + ' ' + c.component + ', ' + c.units + ' unit(s), ' + c.urgency)}${line('Condition', m.condition)}${line('Allergies', m.allergies)}${line('Medicines', m.medications)}${line('Area', c.area)}</div>`;
+  } catch { box.innerHTML = ''; }
 }
 
 /* ================= ACTIVE REQUEST ================= */
@@ -228,6 +270,7 @@ Share on WhatsApp</a>
 <div class="bg-amber-50 border-t border-amber-200 px-4 py-2.5 text-[11px] font-bold text-amber-800 text-center">Donations only at authorized blood banks • Matches are potential matches only</div>
 </div>
 ${cardImg}
+${preAlertCard(r)}
 <div class="bg-white border border-gray-100 rounded-[22px] p-4 shadow-card">
 <div class="flex items-center justify-between"><h3 class="font-extrabold text-[15px]">Live tracker</h3><span class="text-[11px] font-black text-primary bg-primaryLight px-2.5 py-1 rounded-full">${esc(r.status).toUpperCase()}</span></div>
 <div class="mt-3 flex items-start">${stepsHTML}</div>
@@ -255,7 +298,7 @@ function renderSOS() {
   $('newSosBtn').classList.toggle('hidden', !active);
   const wrap = $('activeRequestWrap');
   if (!active) { wrap.classList.add('hidden'); wrap.innerHTML = ''; }
-  else { wrap.classList.remove('hidden'); wrap.innerHTML = reqCard(active); }
+  else { wrap.classList.remove('hidden'); wrap.innerHTML = reqCard(active); loadPreAlertPrivate(active); }
   const past = requests.filter((q) => q.id !== activeRequestId).slice(0, 5);
   $('pastWrap').classList.toggle('hidden', past.length === 0 && !active);
   $('pastList').innerHTML = past.map((q) => { const u2 = urgStyle(q.urgency); return `<button data-action="view-req" data-id="${esc(q.id)}" class="w-full text-left bg-white border border-gray-100 rounded-2xl p-3 shadow-card flex items-center gap-3 hover:border-red-200 transition">
@@ -449,6 +492,7 @@ function bindActions() {
     else if (a === 'clear-req') doAction(async () => { await post(`/requests/${b.dataset.id}/clear`, {}); await refreshRequests(); renderAll(); toast('Request cleared - matching resumed', 'good'); });
     else if (a === 'new-sos') { activeRequestId = null; renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
     else if (a === 'view-req') { activeRequestId = b.dataset.id; renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    else if (a === 'pa-pick') { paSel[b.dataset.req] = +b.dataset.i || 0; renderSOS(); }
     else if (a === 'copy-id') { if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.id); toast('ID copied: ' + b.dataset.id); }
     else if (a === 'inbox-accept') doAction(async () => { await post(`/requests/${b.dataset.id}/accept`, { donorId: b.dataset.donor }); await refreshRequests(); await loadAlerts(); renderAll(); toast('Accepted - patient notified', 'good'); });
     else if (a === 'dir-filter') { dirFilter = b.dataset.f; renderDonors(); }

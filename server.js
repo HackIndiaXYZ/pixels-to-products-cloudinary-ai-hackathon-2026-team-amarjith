@@ -9,6 +9,8 @@ const gnani = require('./gnani');
 const vp = require('./voice-parse');
 const sec = require('./security');
 const storage = require('./storage');
+const preAlert = require('./pre-alert');
+const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 
 // Browsers record mic audio as webm/opus, which Gnani STT does not accept -
@@ -182,6 +184,8 @@ async function api(req, res, url) {
       units: Math.min(10, Math.max(1, Math.floor(+b.units) || 1)), urgency: ['critical', 'urgent', 'normal'].includes(b.urgency) ? b.urgency : 'urgent', area: b.area, coords: lib.AREAS[b.area],
       hospital: sec.clamp(b.hospital, 100), note: sec.clamp(b.note, 300), status: 'Searching', createdAt: new Date().toISOString(), stage: 0, lastEscalationAt: null,
       alerted: [], accepted: [], bankAlerts: [], messages: [], timeline: [], flags: [], reports: 0, reportPublicId: null, reportUrl: null };
+    const medical = preAlert.cleanProfile(b.patientProfile, sec.clamp); // optional + consent-gated; additive
+    if (medical) { r.medical = medical; r.preAlertToken = crypto.randomBytes(12).toString('hex'); }
     if (b.reportImage) { const u = await cl.upload(b.reportImage, 'blood-network/medical-reports'); r.reportPublicId = u.public_id; r.reportUrl = null; }
     r.flags = lib.fraudFlags(r, db.requests); // after the async upload, so a parallel duplicate request is visible (race)
     if (r.flags.length) { r.status = 'Flagged'; log(r, 'Held for review, no alerts sent: ' + r.flags.join('; ')); }
@@ -189,10 +193,18 @@ async function api(req, res, url) {
       const n = alertDonors(r, Math.max(3, r.units * 2));
       if (n) { r.status = 'Donor Found'; log(r, `${n} compatible donors alerted.`); demoEmail.sendDemo(r, n).then((ok) => { if (ok) log(r, 'Demo email alert sent to the project owner only.'); }); } else log(r, 'No compatible donor in range yet. Escalation will widen the search.');
     }
+    if (r.medical && r.status !== 'Flagged') { r.preAlert = preAlert.publicSummary(r, BANKS); log(r, r.preAlert.facility ? `Simulated pre-alert prepared for ${r.preAlert.facility.name} (nobody was notified).` : 'Pre-alert not prepared: no facility with coordinates found.'); }
     db.requests.push(r); save();
-    return send(res, 201, withMatches(r));
+    return send(res, 201, { ...withMatches(r), preAlertToken: r.medical ? r.preAlertToken : undefined });
   }
   let mm;
+  if (m === 'GET' && (mm = p.match(/^\/api\/requests\/([\w-]+)\/pre-alert$/))) {
+    const r = find(db.requests, mm[1]);
+    const tok = String(req.headers['x-pre-alert-token'] || '');
+    const ok = r && r.preAlertToken && tok.length === r.preAlertToken.length && crypto.timingSafeEqual(Buffer.from(tok), Buffer.from(r.preAlertToken));
+    if (!ok || !r.medical || r.status === 'Flagged') return send(res, 404, { error: 'No pre-alert card for this request' });
+    return send(res, 200, preAlert.privateCard(r, BANKS));
+  }
   if (m === 'POST' && (mm = p.match(/^\/api\/requests\/([\w-]+)\/(status|accept|escalate|clear|message)$/))) {
     const r = find(db.requests, mm[1]); const b = await body(req);
     if (!r) return send(res, 404, { error: 'No such request' });
@@ -209,7 +221,7 @@ async function api(req, res, url) {
       if (!r.accepted.includes(d.id)) { r.accepted.push(d.id); r.status = 'Contacted'; log(r, `${d.name} accepted. Chat via the platform relay (numbers stay hidden).`); }
     }
     if (act === 'escalate') escalate(r); // demo: "fast-forward 10 minutes"
-    if (act === 'clear') { r.status = r.accepted.length ? 'Contacted' : 'Searching'; r.flags = []; log(r, 'Reviewed and cleared.'); alertDonors(r, Math.max(3, r.units * 2)); }
+    if (act === 'clear') { r.status = r.accepted.length ? 'Contacted' : 'Searching'; r.flags = []; log(r, 'Reviewed and cleared.'); if (r.medical && !r.preAlert) r.preAlert = preAlert.publicSummary(r, BANKS); alertDonors(r, Math.max(3, r.units * 2)); }
     if (act === 'message') {
       const text = String(b.text || '').slice(0, 300); if (!text) return send(res, 400, { error: 'Empty message' });
       const money = lib.fraudFlags({ ...r, hospital: text, note: '', createdAt: 0, phone: '0' }, []).length > 0;
@@ -240,8 +252,8 @@ async function api(req, res, url) {
 }
 function withMatches(r) {
   const matches = lib.matchDonors(r, db.donors).slice(0, 6).map((x) => ({ ...pub(x.donor), km: x.km, score: x.score, alerted: r.alerted.includes(x.donor.id), accepted: r.accepted.includes(x.donor.id) }));
-  const { phone, reportPublicId, reportUrl, reporters, ...safe } = r; // requester phone and private medical report never leave the server
-  return { ...safe, hasReport: Boolean(reportPublicId), radiusKm: lib.radiusFor(r.urgency, r.stage), matches, cardUrl: cl.requestCardUrl(r) };
+  const { phone, reportPublicId, reportUrl, reporters, medical, preAlertToken, ...safe } = r; // requester phone and private medical report never leave the server
+  return { ...safe, hasReport: Boolean(reportPublicId), hasPreAlert: Boolean(medical), radiusKm: lib.radiusFor(r.urgency, r.stage), matches, cardUrl: cl.requestCardUrl(r) };
 }
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.css': 'text/css' };
